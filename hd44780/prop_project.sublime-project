@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"follow_symlinks": true,
+			"path": ".",
+			"file_exclude_patterns": [
+				"*.side",
+				"*.cog",
+				"*.elf",
+				"*.sublime*",
+			],
+
+			"folder_exclude_patterns": [
+				"cmm"
+			]
+
+		},
+	]
+}
