@@ -6,19 +6,19 @@ AR = $(PROPGCC)/bin/propeller-elf-ar
 MMODEL = cmm
 BOARD = QUICKSTART
 
-TARGET = hd44780-example
+TARGET = ssd1306-example
 LIBDIR = $(MMODEL)
-LIBTARGET = libhd44780
+LIBTARGET = libssd1306
 
 OBJDIR = build
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../i2c/
 
-LIBS = -lhd44780
-LFLAGS = -L./$(MMODEL)/
+LIBS = -li2c
+LFLAGS = -L./$(MMODEL)/ -L../i2c/cmm/
 
 PORT = /dev/cu.usbserial-*
-LOAD_MODE = load_eeprom
+LOAD_MODE = load
 LOADFLAGS = -Dreset=dtr -S5
 
 .PHONY: all setup load load_eeprom clean
@@ -29,17 +29,17 @@ setup:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/hd44780.o
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/ssd1306.o
 		$(AR) rcs $@ $<
 
-$(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
+$(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o $(OBJDIR)/ssd1306.o
 		$(CC) $(INCLUDES) $(LFLAGS) -o $@ -m$(MMODEL) $(CFLAGS) $^ $(LIBS)
 		$(PROPGCC)/bin/propeller-elf-size $(OBJDIR)/$(TARGET).elf
 
 $(OBJDIR)/$(TARGET).o: demo.cpp global.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $< 	
 
-$(OBJDIR)/hd44780.o: hd44780.cpp hd44780.h
+$(OBJDIR)/ssd1306.o: ssd1306.cpp ssd1306.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $< 
 
 load: $(OBJDIR)/$(TARGET).elf
