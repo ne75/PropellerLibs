@@ -1,8 +1,9 @@
 #include "ssd1306.h"
 #include "font_5x7.c"
 
-SSD1306::SSD1306(I2CBus *bus, uint8_t adr, uint8_t p_rst) : I2CDevice(bus, adr) {
+SSD1306::SSD1306(I2CBus *bus, uint8_t adr, uint8_t p_rst, uint8_t fps) : I2CDevice(bus, adr) {
     this->p_rst = p_rst;
+    this->fps = fps;
 }
 
 bool SSD1306::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
@@ -169,6 +170,6 @@ void SSD1306::draw(void *par) {
             oled->writeReg(0x40, &(oled->fb[i]), 16);
         }
 
-        waitcnt(CLKFREQ/SSD1306_FPS + CNT);
+        waitcnt(CLKFREQ/oled->fps + CNT);
     }
 }

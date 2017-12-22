@@ -7,6 +7,8 @@ MMODEL = cmm
 
 LIBDIR = $(MMODEL)
 LIBTARGET = libi2c
+LIBNAME = i2c
+INCLFILES = i2cbus.h i2cdev.h
 
 OBJDIR = build
 
@@ -19,9 +21,11 @@ PORT = /dev/cu.usbserial-*
 LOAD_MODE = load_eeprom
 LOADFLAGS = -Dreset=dtr -S5
 
-.PHONY: all setup clean
+.PHONY: all setup lib clean
 
 all: setup $(LIBDIR)/$(LIBTARGET).a
+
+lib: setup $(LIBDIR)/$(LIBTARGET).a
 
 setup: 
 	mkdir -p $(OBJDIR)
@@ -35,6 +39,12 @@ $(OBJDIR)/i2cbus.o: i2cbus.cpp i2cbus.h
 
 $(OBJDIR)/i2cdev.o: i2cdev.cpp i2cdev.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $< 
+
+install: lib
+	mkdir -p ../../include/$(LIBNAME)
+	mkdir -p ../../lib/$(MMODEL)
+	cp $(LIBDIR)/$(LIBTARGET).a ../../lib/$(LIBDIR)/$(LIBTARGET).a
+	cp $(INCLFILES) ../../include/$(LIBNAME)/
 
 clean:
 	rm -rf $(OBJDIR)/

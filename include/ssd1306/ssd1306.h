@@ -1,10 +1,8 @@
 #ifndef _HD44780_H
 #define _HD44780_H
 
-#include "global.h"
-
-#include "i2cbus.h"
-#include "i2cdev.h"
+#include "i2c/i2cbus.h"
+#include "i2c/i2cdev.h"
 
 #define SSD1306_WIDTH		128
 #define SSD1306_HEIGHT		32
@@ -55,13 +53,12 @@
 #define SSD1306_VERTICAL_AND_RIGHT_HORIZONTAL_SCROLL 0x29
 #define SSD1306_VERTICAL_AND_LEFT_HORIZONTAL_SCROLL 0x2A
 
-#define SSD1306_FPS 15
-
 class SSD1306 : public I2CDevice {
 
 	uint8_t p_rst;
 	uint8_t fb[SSD1306_HEIGHT*SSD1306_WIDTH/8];
 	uint32_t stack[64];
+	uint8_t fps;
 
 	bool writeReg(uint8_t reg, uint8_t *d, uint8_t s);
 	uint8_t readReg(uint8_t reg, uint8_t s);
@@ -72,7 +69,7 @@ class SSD1306 : public I2CDevice {
 
 public:
 
-	SSD1306(I2CBus *bus, uint8_t adr, uint8_t p_rst);
+	SSD1306(I2CBus *bus, uint8_t adr, uint8_t p_rst, uint8_t fps);
 
 	/*
 	 * Implementing virtual parent method

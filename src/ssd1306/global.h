@@ -7,7 +7,7 @@
 
 /* Pin Definitions */
 
-#define p_SSD1306_RST		27
+#define p_SSD1306_RST		16
 
 #define p_I2C_SCL			28 // there will be a reserved i2c address.
 #define p_I2C_SDA			29

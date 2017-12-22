@@ -9,6 +9,8 @@ BOARD = QUICKSTART
 TARGET = hd44780-example
 LIBDIR = $(MMODEL)
 LIBTARGET = libhd44780
+LIBNAME = hd44780
+INCLFILES = hd44780.h
 
 OBJDIR = build
 
@@ -21,9 +23,11 @@ PORT = /dev/cu.usbserial-*
 LOAD_MODE = load_eeprom
 LOADFLAGS = -Dreset=dtr -S5
 
-.PHONY: all setup load load_eeprom clean
+.PHONY: all setup lib load load_eeprom clean install
 
 all: setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
+
+lib: setup $(LIBDIR)/$(LIBTARGET).a
 
 setup: 
 	mkdir -p $(OBJDIR)
@@ -47,6 +51,12 @@ load: $(OBJDIR)/$(TARGET).elf
 
 load_eeprom: $(OBJDIR)/$(TARGET).elf
 		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -e -r -v $<
+
+install: lib
+	mkdir -p ../../include/$(LIBNAME)
+	mkdir -p ../../lib/$(MMODEL)
+	cp $(LIBDIR)/$(LIBTARGET).a ../../lib/$(LIBDIR)/$(LIBTARGET).a
+	cp $(INCLFILES) ../../include/$(LIBNAME)/
 
 clean:
 	rm -rf $(OBJDIR)/
