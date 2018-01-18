@@ -14,7 +14,7 @@ INCLFILES = ssd1306.h
 
 OBJDIR = build
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 
 LIBS = -li2c
 LFLAGS = -L./$(MMODEL)/ -L../i2c/cmm/
@@ -29,7 +29,7 @@ all: setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
 
 lib: setup $(LIBDIR)/$(LIBTARGET).a
 
-setup: 
+setup:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
@@ -41,10 +41,10 @@ $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o $(OBJDIR)/ssd1306.o
 		$(PROPGCC)/bin/propeller-elf-size $(OBJDIR)/$(TARGET).elf
 
 $(OBJDIR)/$(TARGET).o: demo.cpp global.h
-		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $< 	
+		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 $(OBJDIR)/ssd1306.o: ssd1306.cpp ssd1306.h
-		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $< 
+		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 load: $(OBJDIR)/$(TARGET).elf
 		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -r -v $<
@@ -53,10 +53,9 @@ load_eeprom: $(OBJDIR)/$(TARGET).elf
 		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -e -r -v $<
 
 install: lib
-	mkdir -p ../../include/$(LIBNAME)
 	mkdir -p ../../lib/$(MMODEL)
 	cp $(LIBDIR)/$(LIBTARGET).a ../../lib/$(LIBDIR)/$(LIBTARGET).a
-	cp $(INCLFILES) ../../include/$(LIBNAME)/
+	cp $(INCLFILES) ../../include/proplibs/
 
 clean:
 	rm -rf $(OBJDIR)/

@@ -9,7 +9,9 @@ SSD1306::SSD1306(I2CBus *bus, uint8_t adr, uint8_t p_rst, uint8_t fps) : I2CDevi
 bool SSD1306::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
     dev.data[0] = reg;
     memcpy(&(dev.data[1]), d, s);
-    return bus->writeData(&dev, dev.data, s+1, true);
+    bool ret = bus->writeData(&dev, dev.data, s+1, true);
+
+    return ret;
 }
 
 uint8_t SSD1306::readReg(uint8_t reg, uint8_t s) {
@@ -38,7 +40,7 @@ void SSD1306::_char(uint8_t x, uint8_t y, uint8_t c, bool inv) {
             if (j & 7) {
                 byte >>= 1;
             } else {
-                byte = d[i + j/8];   
+                byte = d[i + j/8];
             }
             drawPixel(x+i, y+j, inv ^ (byte & 1));
         }
@@ -59,7 +61,7 @@ void SSD1306::string(uint8_t x, uint8_t y, const char *s, bool inv) {
             c_x = x;
             c_y += 8;
         } else {
-            _char(x + c_x - 6, y + c_y, ch, inv);
+            _char(c_x - 6, c_y, ch, inv);
         }
     }
 }
@@ -97,6 +99,14 @@ void SSD1306::clear() {
     memset(fb, 0, (SSD1306_WIDTH*SSD1306_HEIGHT/8));
 }
 
+void SSD1306::clear(uint8_t x, uint8_t y, uint8_t w, uint8_t h) {
+    for (int i = y; i < y+h; i++) {
+        for (int j = x; j < x+w; j++) {
+            drawPixel(j, i, 0);
+        }
+    }
+}
+
 bool SSD1306::setup() {
 
     // reset the chip
@@ -106,6 +116,8 @@ bool SSD1306::setup() {
     OUTA &= ~(1 << p_rst);
     waitcnt(CLKFREQ/100 + CNT);
     OUTA |= 1 << p_rst;
+
+    while(bus->lock());
 
     writeCommand(SSD1306_DISPLAYOFF);                       // 0xAE
     writeCommand(SSD1306_SETDISPLAYCLOCKDIV);               // 0xD5
@@ -118,7 +130,7 @@ bool SSD1306::setup() {
     writeCommand(0x0);                                      // no offset
     writeCommand(SSD1306_SETSTARTLINE | 0x0);               // line #0
     writeCommand(SSD1306_CHARGEPUMP);                       // 0x8D
- 
+
     writeCommand(0x14);
     writeCommand(SSD1306_MEMORYMODE);                       // 0x20
     writeCommand(0x00);                                     // 0x0 act like ks0108
@@ -140,6 +152,7 @@ bool SSD1306::setup() {
     writeCommand(SSD1306_DEACTIVATE_SCROLL);
 
     writeCommand(SSD1306_DISPLAYON);                        //--turn on oled panel
+    bus->unlock();
 
     cogstart(SSD1306::draw, (void*)this, stack, sizeof(stack));
 
@@ -157,6 +170,7 @@ void SSD1306::draw(void *par) {
     SSD1306 *oled = (SSD1306*)par;
 
     while (1) {
+        while(oled->bus->lock());
         oled->writeCommand(SSD1306_COLUMNADDR);
         oled->writeCommand(0);   // Column start address (0 = reset)
         oled->writeCommand(SSD1306_WIDTH-1); // Column end address (127 = reset)
@@ -169,6 +183,7 @@ void SSD1306::draw(void *par) {
             // send a bunch of data in one xmission
             oled->writeReg(0x40, &(oled->fb[i]), 16);
         }
+        oled->bus->unlock();
 
         waitcnt(CLKFREQ/oled->fps + CNT);
     }

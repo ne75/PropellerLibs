@@ -12,7 +12,7 @@
 #define p_I2C_SCL			28 // there will be a reserved i2c address.
 #define p_I2C_SDA			29
 #define p_UART_TX			30
-#define p_UART_RX			31 
+#define p_UART_RX			31
 
 /* Address Definitions (if any) */
 #define SSD1306_ADDR		(0x3C << 1)
@@ -20,7 +20,7 @@
 /* Global Constants */
 
 #ifndef CLKFREQ
-#define CLKFREQ 			80000000    // redefine it because COG mode is weird. 
+#define CLKFREQ 			80000000    // redefine it because COG mode is weird.
 #endif
 
 /* Macros */

@@ -8,6 +8,7 @@ class I2CBus {
 
 	I2C_COGDRIVER cdev;
 	I2C *i2cdev;
+	uint8_t lock_id;
 
 public:
 	struct i2c_dev {
@@ -49,6 +50,17 @@ public:
 	 * read several bytes from a device on the bus
 	 */
 	bool readData(i2c_dev *dev, uint8_t s, bool stop);
+
+	/*
+	 * lock the bus so only one device at a time can push bytes. Returns
+	 * false if the bus was successfully locked
+	 */
+	bool lock();
+
+	/*
+	 * unlock the bus
+	 */
+	void unlock();
 
 };
 

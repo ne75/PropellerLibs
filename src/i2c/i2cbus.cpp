@@ -4,6 +4,8 @@ I2CBus::I2CBus(uint8_t scl, uint8_t sda) {
 	this->scl = scl;
 	this->sda = sda;
 	i2cdev = i2cOpen(&cdev, scl, sda, 400000); //open a 400 khz bus
+	lock_id = locknew();
+	lockclr(lock_id);
 }
 
 bool I2CBus::getLineHeld() {
@@ -29,4 +31,12 @@ bool I2CBus::writeData(i2c_dev *dev, uint8_t *data, uint8_t s, bool stop) {
 
 bool I2CBus::readData(i2c_dev *dev, uint8_t s, bool stop) {
 	return i2cRead(i2cdev, dev->adr, dev->data, s, stop) == 0;
+}
+
+bool I2CBus::lock() {
+	return lockset(lock_id);
+}
+
+void I2CBus::unlock() {
+	lockclr(lock_id);
 }

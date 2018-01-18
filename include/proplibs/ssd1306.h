@@ -1,8 +1,13 @@
 #ifndef _HD44780_H
 #define _HD44780_H
 
-#include "i2c/i2cbus.h"
-#include "i2c/i2cdev.h"
+#ifdef LIB_COMPILE
+	#include "i2c/i2cbus.h"
+	#include "i2c/i2cdev.h"
+#else
+	#include "proplibs/i2cbus.h"
+	#include "proplibs/i2cdev.h"
+#endif
 
 #define SSD1306_WIDTH		128
 #define SSD1306_HEIGHT		32
@@ -84,6 +89,7 @@ public:
 	void _char(uint8_t x, uint8_t y, uint8_t c, bool inv);
 	void string(uint8_t x, uint8_t y, const char *s, bool inv);
 	void clear();
+	void clear(uint8_t x, uint8_t y, uint8_t w, uint8_t h);
 
 };
 
