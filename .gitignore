@@ -59,8 +59,6 @@ Temporary Items
 *.out
 *.app
 
-
-
 build/
 include/
 

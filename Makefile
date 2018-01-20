@@ -6,6 +6,8 @@ LIBM24512 = m24512
 LIBMPU6050 = mpu6050
 LIBSSD1306 = ssd1306
 
+PREFIX = /opt/PropellerLibraries
+
 LIBDIR = lib
 INCLDIR = include
 PLDIR = proplibs
@@ -18,6 +20,11 @@ all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBSSD1306)
 setup:
 	mkdir -p $(LIBDIR)
 	mkdir -p $(INCLDIR)/$(PLDIR)
+
+install: all
+	mkdir -p $(PREFIX)
+	cp -r $(LIBDIR) $(PREFIX)
+	cp -r $(INCLDIR) $(PREFIX)
 
 $(LIBI2C):
 	cd $(SRCDIR)/$@ && make lib
