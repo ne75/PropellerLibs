@@ -1,10 +1,7 @@
 #include "m24512.h"
 
-M24512::M24512(I2CBus *bus, uint8_t adr) : I2CDevice(bus, adr) {
-	this->bus = bus;
-	dev.adr = adr;
-	connected = false;
-}
+M24512::M24512(I2CBus *bus, uint8_t adr) : I2CDevice(bus, adr) {}
+
 
 bool M24512::isConnected() {
 	return connected;
