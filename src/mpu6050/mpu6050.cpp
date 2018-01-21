@@ -39,7 +39,9 @@ bool MPU6050::setup() {
 
     // reset the IMU
     d = 1 << 7;
-    writeReg(REG_PWR_MGMT_1, &d, 1);
+    if (!writeReg(REG_PWR_MGMT_1, &d, 1)) {
+        return false;
+    }
     waitcnt(CNT + CLKFREQ / 100);
 
     // write 1 to power management to enable the IMU and sellect the x-axis gyro as the clock source
@@ -57,20 +59,27 @@ bool MPU6050::setup() {
 
     // set gyro and accel full scale range
     d = gfs << 3;
-    writeReg(REG_GYRO_CONFIG, &d, 1);
+    if (!writeReg(REG_GYRO_CONFIG, &d, 1)) {
+        return false;
+    }
 
     d = afs << 3;
-    writeReg(REG_GYRO_CONFIG, &d, 1);
+    if (!writeReg(REG_GYRO_CONFIG, &d, 1)) {
+        return false;
+    }
 
-    d = 15;
-    writeReg(REG_SMPL_RATE_DIV, &d, 1);
+    d = 15; //hard code this for now.
+    if (!writeReg(REG_SMPL_RATE_DIV, &d, 1)) {
+        return false;
+    }
 
+    // if there isn't an orientation set already, set it to vertical
+    // this is for if the IMU needs to be restarted, it doesn't jerk.
     if (this->q.length() < 0.9) {
         this->q = quatf(1.0,0.0,0.0,0.0);
     }
 
-    this->init = true;
-
+    this->connected = true;
     return true;
 }
 

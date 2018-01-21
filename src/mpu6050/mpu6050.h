@@ -38,7 +38,6 @@ enum {
 
 class MPU6050 : public I2CDevice {
 
-    bool init;
     uint8_t id;
 
     quatf q;
