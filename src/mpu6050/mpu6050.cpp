@@ -28,9 +28,31 @@ MPU6050::MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orient
     this->orientation = orientation;
 }
 
+bool MPU6050::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
+    dev.data[0] = reg;
+    memcpy(&(dev.data[1]), d, s);
+    bool ret = bus->writeData(&dev, dev.data, s+1, true);
+
+    return ret;
+}
+
+uint8_t MPU6050::readReg(uint8_t reg, uint8_t s) {
+    bus->writeByte(&dev, reg, false);
+    bus->readData(&dev, s, true);
+
+    return s;
+}
+
+uint8_t *MPU6050::readRawData(uint8_t *buffer) {
+    readReg(REG_ACCEL_XOUT_H, 14);
+    memcpy(&(buffer), &(dev.data), 14);
+    return buffer;
+}
+
 bool MPU6050::isConnected() {
     return connected;
 }
+
 bool MPU6050::setup() {
     printf("# * Init IMU %d *\n", this->id);
     uint8_t d; // d pointer address
@@ -83,18 +105,35 @@ bool MPU6050::setup() {
     return true;
 }
 
-bool MPU6050::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
-    dev.data[0] = reg;
-    memcpy(&(dev.data[1]), d, s);                   //
-    bool ret = bus->writeData(&dev, dev.data, s+1, true);
+void MPU6050::readData() {
+    uint8_t rawData [14];
+    this->readRawData(rawData);
 
-    return ret;
-}
+    // Parse accelerometer data (registers 0-5)
+    this->accel.x = (float)(int16_t)(rawData[0] << 8 | rawData[1]);
+    this->accel.y = (float)(int16_t)(rawData[2] << 8 | rawData[3]);
+    this->accel.z = (float)(int16_t)(rawData[4] << 8 | rawData[5]);
 
-uint8_t MPU6050::readReg(uint8_t reg, uint8_t s) {
-    bus->writeByte(&dev, reg, false);
-    bus->readData(&dev, s, true);
+    // Parse temperature data (registers 6-7)
+    this->temp = raw_data[6] << 8 | raw_data[7];
+    this->temp = this->temp / 340.0 + 36.53; // Conversion from datasheet
 
-    return s;
+    // Parse gyroscope data (registers 8-13)
+    this->gyro.x = (float)(int16_t)(rawData[8]  << 8 | rawData[9]);
+    this->gyro.y = (float)(int16_t)(rawData[10] << 8 | rawData[11]);
+    this->gyro.z = (float)(int16_t)(rawData[12] << 8 | rawData[13]);
+
+    // I'm finding that all three axes are flipped on the accel, leading to a left hand system
+    this->accel.x *= -this->as;
+    this->accel.y *= -this->as;
+    this->accel.z *= -this->as;
+
+    this->gyro.x *= this->gs;
+    this->gyro.y *= this->gs;
+    this->gyro.z *= this->gs;
+
+    this->gyro.x += this->gyro_bias.x;
+    this->gyro.y += this->gyro_bias.y;
+    this->gyro.z += this->gyro_bias.z;
 }
 

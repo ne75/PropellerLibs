@@ -74,14 +74,7 @@ class MPU6050 : public I2CDevice {
     /*
      * reads raw data (xyz accel, xyz gyro, and temp) from IMU
      */
-    bool mpu6050_read_raw(MPU6050 *imu);
-
-
-    /*
-     * parse and scale raw data into acclerometer, temperature, and gyro data
-     *
-     */
-    void mpu6050_parse_data(MPU6050 *imu);
+    uint8_t *readRawData(uint8_t *buffer);
 
 
 public:
@@ -97,7 +90,7 @@ public:
     /*
      * updates IMU data
      */
-    void mpu6050_read_data(MPU6050 *imu);
+    void readData();
 
 
 
@@ -112,19 +105,19 @@ public:
      * f:   filter frequency
      * w:   gyro data weight
      */
-    void mpu6050_init_filter(uint16_t f, float w);
+    void initFilter(uint16_t f, float w);
 
     // eventually remove this definition
-    void mpu6050_run_filter(MPU6050 *imu);
+    void runFilter();
 
     /**
      * service the IMU interrupt
      */
-    void mpu6050_service_imu(MPU6050 *imu);
+    void serviceImu();
 
     /**
      * calibrate the imu's gyro. IMU must be still while this is happening
      */
-    void mpu6050_measure_gyro_bias(MPU6050 *imu);
+    void measureGyroBias();
 };
 #endif
