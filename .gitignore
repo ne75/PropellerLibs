@@ -63,5 +63,5 @@ build/
 include/
 
 *.sublime-project
-
 *.sublime-workspace
+*vs/
