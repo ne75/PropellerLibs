@@ -115,7 +115,7 @@ void MPU6050::readData() {
     this->accel.z = (float)(int16_t)(rawData[4] << 8 | rawData[5]);
 
     // Parse temperature data (registers 6-7)
-    this->temp = raw_data[6] << 8 | raw_data[7];
+    this->temp = rawData[6] << 8 | rawData[7];
     this->temp = this->temp / 340.0 + 36.53; // Conversion from datasheet
 
     // Parse gyroscope data (registers 8-13)
@@ -135,5 +135,24 @@ void MPU6050::readData() {
     this->gyro.x += this->gyro_bias.x;
     this->gyro.y += this->gyro_bias.y;
     this->gyro.z += this->gyro_bias.z;
+}
+
+void MPU6050::measureGyroBias() {
+    vec3f bias;
+    waitcnt(CNT + CLKFREQ); // wait 1 second to let the gyro settle
+
+    float i;
+    int t = CNT;
+    // take 1 second of measurements
+    while (CNT < t + CLKFREQ) {
+        i++;
+        this->readData();
+
+        bias.x -= this->gyro.x;
+        bias.y -= this->gyro.y;
+        bias.z -= this->gyro.z;
+    }
+
+    this->gyro_bias = bias / t;
 }
 

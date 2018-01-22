@@ -59,8 +59,6 @@ class MPU6050 : public I2CDevice {
 
     bool service;
 
-    uint8_t raw_data[14]; //maximum amount of data that will be read at a time
-
     /*
      * write a register to the MPU6050
      */
@@ -92,11 +90,10 @@ public:
      */
     void readData();
 
-
-
-    // STUFF
-
-
+    /**
+     * calibrate the imu's gyro. IMU must be still while this is happening
+     */
+    void measureGyroBias();
 
     /**
      *
@@ -114,10 +111,5 @@ public:
      * service the IMU interrupt
      */
     void serviceImu();
-
-    /**
-     * calibrate the imu's gyro. IMU must be still while this is happening
-     */
-    void measureGyroBias();
 };
 #endif
