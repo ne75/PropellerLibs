@@ -19,6 +19,11 @@
 
 
 // // Globals used in the ISR.
+float filter_weight = 0;
+uint16_t filter_freq = 0;
+uint32_t filt_time = 0;
+
+
 // MPU6050 imus[IMU_MAX] = { 0 };
 
 MPU6050::MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation) : I2CDevice(bus, MPU6050_BASE_ADDR + id) {
@@ -154,5 +159,36 @@ void MPU6050::measureGyroBias() {
     }
 
     this->gyro_bias = bias / t;
+}
+
+void MPU6050::initFilter(uint16_t f, float w) {
+    this->filter_freq = f;
+    this->filter_time = w;
+
+}
+
+void MPU6050::runFilter() {
+
+    vec3f g = this->gyro.rotate(this->orientation);
+    vec3f a = this->accel.rotate(this->orientation);
+
+
+    vec3f tempVec = {0,0,1};
+    vec3f expected_a = tempVec.rotate(this->q);
+
+    vec3f err = a.cross(expected_a);
+    err.x*= -1;  
+    err = err*filter_weight;
+
+    g = g+err;
+
+    quatf gyro = {0};
+    gyro.x = g.x/(filter_freq*2);
+    gyro.y = g.y/(filter_freq*2);
+    gyro.w = 1.0k - (gyro.x*gyro.x + gyro.y*gyro.y + gyro.z*gyro.z)/2;
+
+    quatf normTemp = gyro*(this->q);
+    this->q = normTemp.normalize();
+
 }
 

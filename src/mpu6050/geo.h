@@ -79,6 +79,13 @@ public:
         return v*cos(t)+(k.cross(v))*sin(t)+(k*(k.dot(v))*(1-cos(t)));
     }
 
+     vec3f rotate(quatf q) {
+        // Rotate by quat.
+        quatf pq = {0, this->x, this->y, this->z};
+        quat pq1 = (q*pq)*(q.conj());
+        return (vec3f) {pq1.x, pq1.y, pq1.z};
+    }
+
     float x;
     float y;
     float z;
@@ -185,6 +192,7 @@ public:
         float n = length();
         return quatf(w/n, x/n, y/n, z/n);
     }
+
 
 };
 
