@@ -73,21 +73,15 @@ void setDrive(hi, lo, pwm)[
 
 	]
 
-void cycle(){
-	if (motors[BLDC_MOTOR_PITCH].en) {
-    	if (motors[BLDC_MOTOR_PITCH].soft_start) {
-    		motors[BLDC_MOTOR_PITCH].ss_cntr++;
-            motors[BLDC_MOTOR_PITCH].pwm_time = (motors[BLDC_MOTOR_PITCH].ss_cntr*PWM_PERIOD)/(PWM_FREQ/SS_DIV);
+// This is the BLDC for pitch.
+void pitchCycle (uint8_t engine, bool signal) {
+	while(signal)
+		if (motorNo = 1) {
+			if (soft_start) {
+				ss_cntr++;
+				pwm_time = (ss_cntr*PWM_PERIOD)/(PWM_FREQ/SS_DIV);
+				OUTA &= ~(1 << pin1 | pin2 | pin3);
 
-            OUTA &= ~(1 << pin1 | pin2 | pin3);
-
-
-            PPSOutput(1, RPB3, OC1);
-            PPSOutput(1, RPB4, NULL);
-            PPSOutput(1, RPB7, NULL);
-
-    	}
-	}
-
+			}
+		}
 }
-
