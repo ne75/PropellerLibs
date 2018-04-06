@@ -32,6 +32,9 @@ private:
     uint8_t pin2;
     uint8_t pin3;
 
+    uint8_t SS_DIV;
+
+    uint32_t duty;
 
     bool en;
     bool soft_start;
