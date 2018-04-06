@@ -64,13 +64,24 @@ inline void bldc_calc_pwm (){
 	pwm_time = zone_phase*PWM_PERIOD/(MAX_ANGLE/6);
 }
 
+
+void setDrive(hi, lo, pwm)[
+		OUTA &= ~(1 << lo);
+		OUTA |= 1 << hi;
+		CTRA = NCO_SINGLE | pwm;
+		PHSA = -pwm_time*(PWM_PERIOD/1000);
+
+	]
+
 void cycle(){
 	if (motors[BLDC_MOTOR_PITCH].en) {
     	if (motors[BLDC_MOTOR_PITCH].soft_start) {
     		motors[BLDC_MOTOR_PITCH].ss_cntr++;
             motors[BLDC_MOTOR_PITCH].pwm_time = (motors[BLDC_MOTOR_PITCH].ss_cntr*PWM_PERIOD)/(PWM_FREQ/SS_DIV);
 
-            mPORTBClearBits(BIT_3 | BIT_4 | BIT_7);
+            OUTA &= ~(1 << pin1 | pin2 | pin3);
+
+
             PPSOutput(1, RPB3, OC1);
             PPSOutput(1, RPB4, NULL);
             PPSOutput(1, RPB7, NULL);
@@ -79,3 +90,4 @@ void cycle(){
 	}
 
 }
+

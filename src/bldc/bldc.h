@@ -34,20 +34,11 @@ private:
 
     uint8_t SS_DIV;
 
-    uint32_t duty;
+	uint8_t motorNo;		// TODO Consider the functionality of having a motor number. 
 
     bool en;
     bool soft_start;
     uint32_t ss_cntr;
-
-
-	// Anonymous enumeration maintained from before.  Check in on this.
-	enum {
-		BLDC_MOTOR_PITCH = 0,
-		BLDC_MOTOR_ROLL,
-		BLDC_MOTOR_MAX
-	};
-
 
 public:
 	
