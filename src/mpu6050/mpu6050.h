@@ -1,7 +1,9 @@
 #ifndef _MPU6050_H
 #define _MPU6050_H
 
-// #include <stdint.h>
+#include <cstdint>
+#include <cstdbool>
+#include <cstdfix>
 
 #include "geo.h"
 
@@ -13,30 +15,31 @@
     #include "proplibs/i2cdev.h"
 #endif
 
-enum {
-    IMU_CAM = 0,
-    IMU_FRAME,
+class MPU6050 {
 
-    // nothing after this line
-    IMU_MAX
-};
+private:
+    enum {
+        IMU_CAM = 0,
+        IMU_FRAME,
 
-// Full scale gyro/accel values
-enum {
-    GYRO_FS_250 = 0,
-    GYRO_FS_500,
-    GYRO_FS_1000,
-    GYRO_FS_2000
-};
+        // nothing after this line
+        IMU_MAX
+    };
 
-enum {
-    ACCEL_FS_2G = 0,
-    ACCEL_FS_4G,
-    ACCEL_FS_8G,
-    ACCEL_FS_16G
-};
+    // Full scale gyro/accel values
+    enum {
+        GYRO_FS_250 = 0,
+        GYRO_FS_500,
+        GYRO_FS_1000,
+        GYRO_FS_2000
+    };
 
-class MPU6050 : public I2CDevice {
+    enum {
+        ACCEL_FS_2G = 0,
+        ACCEL_FS_4G
+        ACCEL_FS_8G,
+        ACCEL_FS_16G
+    };
 
     uint8_t id;
 
@@ -59,7 +62,12 @@ class MPU6050 : public I2CDevice {
 
     bool service;
 
-    /*
+
+public:
+
+    MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation);
+
+     /*
      * write a register to the MPU6050
      */
     bool writeReg(uint8_t reg, uint8_t *d, uint8_t s);
@@ -74,15 +82,11 @@ class MPU6050 : public I2CDevice {
      */
     uint8_t *readRawData(uint8_t *buffer);
 
-
-public:
-
-    MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation);
-
     /*
      * Implementing virtual parent method
      */
     bool isConnected();
+
     bool setup();
 
     /*
@@ -111,5 +115,6 @@ public:
      * service the IMU interrupt
      */
     void serviceImu();
-};
+    }
+}
 #endif
