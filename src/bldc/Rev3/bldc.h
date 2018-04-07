@@ -32,6 +32,9 @@ typedef struct bldc_mb {
     bool soft_start;
     uint32_t ss_cntr;
     uint8_t ss_div;
+
+    int32_t testCount;      // TODO Variable for test counting.
+
 }bldc_mb;
 
 

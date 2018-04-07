@@ -8,7 +8,21 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 
 	struct bldc_mb *par = *ppmailbox;
 
-	bldc_calc_pwm(par);
+	bldc_step_angle(par, 3600);
+	while(1){
+		par->testCount=par->velocity;
+		DIRA |= 1 << 16;
+
+		while (par->testCount > 0) {
+			OUTA ^= 1 << 16;
+			waitcnt(CNT + CLKFREQ/2);
+			OUTA ^= 1 << 16;
+			waitcnt(CNT + CLKFREQ/2);
+			par->testCount--;
+		}
+		waitcnt(CNT + CLKFREQ);
+	}
+
 }
 
 // Init
