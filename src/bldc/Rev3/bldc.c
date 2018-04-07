@@ -33,30 +33,33 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 	uint32_t t = CNT;
 
 	while(1){
+		if (par-> en){
+			if (par->soft_start) {
+				par->ss_cntr++;														// Inc. SS counter.
+				par->pwm_time = (par->ss_cntr*PWM_PERIOD)/(PWM_FREQ/SS_DIV); 		// Determine pwm time.
+				OUTA &= ~(allPin);													// Write selected pins to 0.
 
-		if (par->soft_start) {
-			par->ss_cntr++;														// Inc. SS counter.
-			par->pwm_time = (par->ss_cntr*PWM_PERIOD)/(PWM_FREQ/SS_DIV); 		// Determine pwm time.
-			OUTA &= ~(allPin);													// Write selected pins to 0.
+				CTRA = 	CTRA | par->pin1;
+				t = CNT;	// Set time here. Now set outputs;
 
-			CTRA = 	CTRA | par->pin1;
-			t = CNT;	// Set time here. Now set outputs;
+				PHSA = -par->pwm_time*(PWM_PERIOD/1000);
+				OUTA |= 0 << par->pin2;
+				OUTA |= 0 << par->pin3;
 
-			PHSA = -par->pwm_time*(PWM_PERIOD/1000);
-			OUTA |= 0 << par->pin2;
-			OUTA |= 0 << par->pin3;
+				waitcnt(t += PWM_PERIOD);
 
-			waitcnt(t += PWM_PERIOD);
+				if (par->ss_cntr >= PWM_FREQ/SS_DIV) {
+	                par->soft_start = false;
+	            }									
+			}
 
-			if (par->ss_cntr >= PWM_FREQ/SS_DIV) {
-                par->soft_start = false;
-            }									
+			else {
+				OUTA |= 1 << par->pin2;
+			}
 		}
-
 		else {
-			OUTA |= 1 << par->pin2;
+			OUTA &= ~(allPin);
 		}
-
 	}
 
 	/*
