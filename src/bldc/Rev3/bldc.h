@@ -5,14 +5,14 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BLDC_STACK_SIZE 64
+#define BLDC_STACK_SIZE 128
 
 #define PWM_FREQ        18000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define MAX_ANGLE       3600000
 
 
-struct bldc_mb {
+typedef struct bldc_mb {
     uint8_t poles; 			// number of poles in the motor
     int32_t mech_angle; 	// 0-3600000
     int32_t velocity;	
@@ -32,7 +32,7 @@ struct bldc_mb {
     bool soft_start;
     uint32_t ss_cntr;
     uint8_t ss_div;
-};
+}bldc_mb;
 
 
 #endif
