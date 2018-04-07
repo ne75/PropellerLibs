@@ -1,35 +1,38 @@
 PROPGCC = /opt/parallax
 CC = $(PROPGCC)/bin/propeller-elf-gcc
+OBJCOPY = $(PROPGCC)/bin/propeller-elf-objcopy
 LOAD = $(PROPGCC)/bin/propeller-load
 
-MMODEL = cog
+MMODEL = cmm
 BOARD = QUICKSTART
 
-TARGET = multiPWM
+TARGET = main
 
 PORT = /dev/ttyUSB0
 OBJDIR = ../../build/$(TARGET)
 
 LOAD_MODE = load
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -DCLKFREQ=80000000
+CFLAGS =  -Os -n -m32bit-doubles -fno-exceptions
 
 LOADFLAGS = -Dreset=dtr -S50
 
-.PHONY: all setup load load_eeprom clean
+.PHONY: all config load clean
 
-all: setup $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
+all: config $(OBJDIR)/$(TARGET).elf load clean 
 
-setup:
-	$(shell pkill propeller-load)
-	mkdir -p $(OBJDIR)
 
-$(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
+
+$(OBJDIR)/$(TARGET).elf: bldc.cog $(OBJDIR)/$(TARGET).o
 		$(CC) $(INCLUDES) $(LFLAGS) -o $@ -m$(MMODEL) $(CFLAGS) $^ $(LIBS)
 		$(PROPGCC)/bin/propeller-elf-size $(OBJDIR)/$(TARGET).elf
 
-$(OBJDIR)/$(TARGET).o: main.cpp
+$(OBJDIR)/$(TARGET).o:  $(TARGET).cpp
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
+
+bldc.cog: bldc.c bldc.h
+		$(CC) -r $(INCLUDES) $(LFLAGS) $(CFLAGS) -mcog -o $@ $< 
+		$(OBJCOPY) --localize-text --rename-section .text=$@ $@	
 
 load: $(OBJDIR)/$(TARGET).elf
 		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -r -v $<
@@ -38,4 +41,4 @@ load_eeprom: $(OBJDIR)/$(TARGET).elf
 		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -e -r -v $<
 
 clean:
-	rm -rf $(OBJDIR)/*
+	rm -f $(OBJDIR)/*.o;

@@ -111,7 +111,7 @@ void pitchCycle () {
 					}
 			}
 		else {
-			OUTA &= ~(1 << (pin1 | pin2 | pin3);
+			OUTA &= ~(1 << (pin1 | pin2 | pin3);d
 		}
 	}
 }
