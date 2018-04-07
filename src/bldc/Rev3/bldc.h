@@ -10,9 +10,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BLDC_STACK_SIZE 64
+#define BLDC_STACK_SIZE 128
 
-#define PWM_FREQ        18000
+#define PWM_FREQ        20000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define MAX_ANGLE       3600000
 #define SS_DIV          1
@@ -20,32 +20,31 @@
 
 typedef struct bldc_mb {
     uint8_t poles; 			// number of poles in the motor
+    
+    uint8_t ExtPin1;
+    uint8_t ExtPin2;
+    uint8_t ExtPin3;
+
     int32_t mech_angle; 	// 0-3600000
     int32_t velocity;	
     int32_t elec_angle;
-
     uint8_t zone;
     uint32_t zone_phase;
-    uint32_t pwm_time;
-
-    uint8_t pin1;
-    uint8_t pin2;
-    uint8_t pin3;
 
     uint8_t motorNo;		// TODO Consider the functionality of having a motor number. 
 
     bool en;
     bool soft_start;
-    uint32_t ss_cntr;
-    uint8_t ss_div;
-
-    int32_t testCount;      // TODO Variable for test counting.
 
 }bldc_mb;
 
-void bldc_init(bldc_mb *m, uint8_t npoles, uint8_t pin1, uint8_t pin2,uint8_t pin3);
+void bldc_init(bldc_mb *m, uint8_t npoles);
 
-void drivePin(bldc_mb *m, uint8_t hi,uint8_t lo, uint8_t pwm);
+uint32_t bldc_calc_pwm (bldc_mb *m);
+
+void bldc_set_velocity(bldc_mb *m, int32_t v);
+
+void bldc_step_angle(bldc_mb *m, int32_t a);
 
 #endif
 

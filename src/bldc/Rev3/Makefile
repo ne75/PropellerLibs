@@ -11,11 +11,11 @@ TARGET = main
 PORT = /dev/ttyUSB0
 OBJDIR = ../../build/$(TARGET)
 
-LOAD_MODE = load
+LOAD_MODE = load_eeprom
 
 CFLAGS =  -Os -n -m32bit-doubles -fno-exceptions
 
-LOADFLAGS = -Dreset=dtr -S50
+LOADFLAGS = -Dreset=dtr -S50 
 
 .PHONY: all config load clean
 
