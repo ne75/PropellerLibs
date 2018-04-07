@@ -30,7 +30,6 @@ struct bldc_mb {
     bool soft_start;
     uint32_t ss_cntr;
     uint8_t ss_div;
-
 };
 
 

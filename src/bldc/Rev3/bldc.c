@@ -8,16 +8,11 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 
 	struct bldc_mb *par = *ppmailbox;
 
-	DIRA |= 1 << 16;
-
-	while (1) {
-	OUTA ^= 1 << 16;
-		waitcnt(CNT + CLKFREQ/2);
-	}
 
 }
-/**
-void bldc_calc_pwm (bldc_mb *m){
+
+// Zone calculation Function
+void bldc_calc_pwm (struct bldc_mb *m){
 	m->elec_angle += m->velocity;
 	m->mech_angle = m->elec_angle / m->poles;
 	m->elec_angle = m->elec_angle % MAX_ANGLE;
@@ -32,4 +27,15 @@ void bldc_calc_pwm (bldc_mb *m){
 }
 
 
+
+
+
+// Base Case: Blink test.
+/**
+	DIRA |= 1 << 16;
+
+	while (1) {
+	OUTA ^= 1 << 16;
+		waitcnt(CNT + CLKFREQ/2);
+	}
 */
