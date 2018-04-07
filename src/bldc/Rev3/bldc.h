@@ -45,5 +45,7 @@ typedef struct bldc_mb {
 
 void bldc_init(bldc_mb *m, uint8_t npoles, uint8_t pin1, uint8_t pin2,uint8_t pin3);
 
+void drivePin(bldc_mb *m, uint8_t hi,uint8_t lo, uint8_t pwm);
+
 #endif
 

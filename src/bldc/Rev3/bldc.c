@@ -28,6 +28,11 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 	OUTA &= ~(allPin);
 
 
+	bldc_set_velocity (par, 400);
+
+	bldc_step_angle(par, 240000);
+
+
 	//OUTA |= allPin;
 
 	uint32_t t = CNT;
@@ -54,7 +59,34 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 			}
 
 			else {
-				OUTA |= 1 << par->pin2;
+				bldc_calc_pwm(par);
+
+				/*DIRA |= 1 << 22;
+				t = CNT;
+				OUTA |= 1 << 22;
+				waitcnt(t += CLKFREQ);
+				OUTA |= 0 << 22;*/
+
+				switch (par->zone){
+					case 0:
+						drivePin(par, par->pin1, par->pin3, par->pin2);
+						break;
+					case 1:
+						drivePin(par, par->pin2, par->pin3, par->pin1);
+						break;
+					case 2:
+						drivePin(par, par->pin2, par->pin1, par->pin3);
+						break;
+					case 3:
+						drivePin(par, par->pin3, par->pin1, par->pin2);
+						break;
+					case 4:
+						drivePin(par, par->pin3, par->pin2, par->pin1);
+						break;
+					case 5:
+						drivePin(par, par->pin1, par->pin2, par->pin3);
+						break;
+				}
 			}
 		}
 		else {
@@ -62,7 +94,8 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 		}
 	}
 
-	/*
+	/**
+	NOTE: Old code to check fields. Why look at LEDs? Because I'm lazy as shit.
 	while(1){
 		par->testCount=par->pin3;
 		DIRA |= 1 << 16;
@@ -78,7 +111,21 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 	}
 	*/
 	
+}
 
+// I like the idea of carrying out varying process w/ drivePin.   
+void drivePin(bldc_mb *m, uint8_t hi,uint8_t lo, uint8_t pwm){
+		// Clear.
+		uint32_t allPin = 1 << hi | 1 << lo | 1 << pwm; 
+
+		OUTA &= ~(allPin);												
+		
+		CTRA = NCO_SINGLE | pwm;
+
+		uint32_t t = CNT;
+		PHSA = -(m->pwm_time)*(PWM_PERIOD/1000);
+		OUTA |= 1 << hi;
+		waitcnt(t += PWM_PERIOD);
 }
 
 // Initialize the struct to the appropriate values
