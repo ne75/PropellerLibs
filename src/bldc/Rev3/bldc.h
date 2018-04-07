@@ -4,7 +4,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+
 #define BLDC_STACK_SIZE 64
+
 #define PWM_FREQ        18000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define MAX_ANGLE       3600000
@@ -14,8 +16,8 @@ struct bldc_mb {
     uint8_t poles; 			// number of poles in the motor
     int32_t mech_angle; 	// 0-3600000
     int32_t velocity;	
-
     int32_t elec_angle;
+
     uint8_t zone;
     uint32_t zone_phase;
     uint32_t pwm_time;

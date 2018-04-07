@@ -8,6 +8,12 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 
 	struct bldc_mb *par = *ppmailbox;
 
+	DIRA |= 1 << 16;
+
+	while (1) {
+	OUTA ^= 1 << 16;
+		waitcnt(CNT + CLKFREQ/2);
+	}
 
 }
 
@@ -26,8 +32,13 @@ void bldc_calc_pwm (struct bldc_mb *m){
     m->pwm_time = (m->zone_phase*PWM_PERIOD)/(MAX_ANGLE/6); 
 }
 
+void bldc_set_velocity(struct bldc_mb *m, int32_t v) {
+    m->velocity = v;
+}
 
-
+void bldc_step_angle(struct bldc_mb *m, int32_t a) {
+    m->elec_angle += (a*1000) % MAX_ANGLE;
+}
 
 
 // Base Case: Blink test.
