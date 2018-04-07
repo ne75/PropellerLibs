@@ -1,3 +1,8 @@
+/**
+  * NOTES ON CHANGES:
+  * (1) The original init function has been cut down.  Don't see the ned to return address.
+  */
+
 //bldc.h
 #ifndef _BLDC_H
 #define _BLDC_H
@@ -5,12 +10,13 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BLDC_STACK_SIZE 128
+#define BLDC_STACK_SIZE 64
 
 #define PWM_FREQ        18000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define MAX_ANGLE       3600000
-
+#define SS_DIV          1
+#define NCO_SINGLE      (0x04 << 26)
 
 typedef struct bldc_mb {
     uint8_t poles; 			// number of poles in the motor
@@ -37,5 +43,7 @@ typedef struct bldc_mb {
 
 }bldc_mb;
 
+void bldc_init(bldc_mb *m, uint8_t npoles, uint8_t pin1, uint8_t pin2,uint8_t pin3);
 
 #endif
+
