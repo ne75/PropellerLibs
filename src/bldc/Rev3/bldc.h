@@ -10,9 +10,9 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define BLDC_STACK_SIZE 128
+#define BLDC_STACK_SIZE 256
 
-#define PWM_FREQ        20000
+#define PWM_FREQ        16000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define MAX_ANGLE       3600000
 #define SS_DIV          1

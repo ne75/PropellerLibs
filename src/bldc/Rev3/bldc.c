@@ -3,6 +3,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+
+
 _NAKED int main(struct bldc_mb **ppmailbox){
 
 	struct bldc_mb *par = *ppmailbox;
@@ -28,6 +30,11 @@ _NAKED int main(struct bldc_mb **ppmailbox){
     uint8_t pin2 = 17;
     uint8_t pin3 = 18;
 
+    // Regarding the PWM total
+
+    uint8_t power = 0;
+ 	uint32_t hiLevel = 0;
+    power = 50; 
 
 	// Current state Hi-Lo-PWM-Pins 
 	uint8_t pinHi;
@@ -46,11 +53,9 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 	DIRA |= allPin;
 	OUTA &= ~(allPin);
 
-
-
-	bldc_set_velocity (par, 10);
-
+	bldc_set_velocity (par, 5000);
 	bldc_step_angle(par, 1);
+
 
 	uint32_t t = CNT;
 
@@ -58,13 +63,16 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 		OUTA ^= 1 << 21;
 
 		if (par-> en){
-			
-			OUTA &= ~(allPin);											
+			// Standard Output.
+			OUTA &= ~(allPin);
+
 			CTRA = NCO_SINGLE | pinPWM;
-			PHSA = -(pwm_time)*(PWM_PERIOD/1000);
-			OUTA |= 1 << pinHi;
-			OUTA &= ~(1 << pinLo);
+			CTRB = NCO_SINGLE | pinHi;
+
+			PHSA = -(pwm_time);
+			PHSB = -(hiLevel);
 	
+			hiLevel = (PWM_PERIOD*power)/100;
 			pwm_time = bldc_calc_pwm(par);
 
 			switch (par->zone){
@@ -99,9 +107,8 @@ _NAKED int main(struct bldc_mb **ppmailbox){
 					pinPWM = pin3;
 					break;
 			}
-		}
-		
-		else {
+
+		} else {
 			OUTA &= ~(allPin);
 		}
 		
@@ -128,10 +135,11 @@ uint32_t bldc_calc_pwm (bldc_mb *m){
 
     uint32_t a = (m->elec_angle < 0) ? MAX_ANGLE+m->elec_angle : m->elec_angle;
 
-    m->zone = a/(MAX_ANGLE/6);
-    m->zone_phase = a % (MAX_ANGLE/6);
 
-    m->zone_phase = (m->zone & 1) ? (MAX_ANGLE/6) - m->zone_phase : m->zone_phase;
+    m->zone = a/(MAX_ANGLE/6);
+    m->zone_phase = (a % (MAX_ANGLE/6))*50/100;
+
+    m->zone_phase = (m->zone & 1) ? (MAX_ANGLE/6)*50/100 - m->zone_phase : m->zone_phase;
    	return (m->zone_phase*PWM_PERIOD)/(MAX_ANGLE/6); 
 }
 
