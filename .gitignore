@@ -3,3 +3,4 @@ build/
 *.sublime-project
 
 *.sublime-workspace
+src/.DS_Store
