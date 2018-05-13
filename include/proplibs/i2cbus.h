@@ -20,6 +20,12 @@ public:
 	uint8_t sda;
 
 	I2CBus(uint8_t scl, uint8_t sda);
+	I2CBus(uint8_t scl, uint8_t sda, uint32_t freq);
+
+	/*
+	 * close and reopen the bus with a new frequency
+	 */
+	void resetBusFreq(uint32_t freq);
 
 	/*
 	 * returns true if the SCL line is held low by the slave

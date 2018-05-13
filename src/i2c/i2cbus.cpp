@@ -16,8 +16,8 @@ I2CBus::I2CBus(uint8_t scl, uint8_t sda, uint32_t freq) {
 	lockclr(lock_id);
 }
 
-void resetBusFreq(uint32_t freq) {
-	i2cClose(cdev);
+void I2CBus::resetBusFreq(uint32_t freq) {
+	i2cClose(i2cdev);
 	i2cOpen(&cdev, scl, sda, freq);
 }
 
