@@ -11,7 +11,7 @@ I2CBus::I2CBus(uint8_t scl, uint8_t sda) {
 I2CBus::I2CBus(uint8_t scl, uint8_t sda, uint32_t freq) {
 	this->scl = scl;
 	this->sda = sda;
-	i2cdev = i2cOpen(&cdev, scl, sda, freq); //open a 400 khz bus
+	i2cdev = i2cOpen(&cdev, scl, sda, freq);
 	lock_id = locknew();
 	lockclr(lock_id);
 }
