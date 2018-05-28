@@ -8,6 +8,19 @@ I2CBus::I2CBus(uint8_t scl, uint8_t sda) {
 	lockclr(lock_id);
 }
 
+I2CBus::I2CBus(uint8_t scl, uint8_t sda, uint32_t freq) {
+	this->scl = scl;
+	this->sda = sda;
+	i2cdev = i2cOpen(&cdev, scl, sda, freq);
+	lock_id = locknew();
+	lockclr(lock_id);
+}
+
+void I2CBus::resetBusFreq(uint32_t freq) {
+	i2cClose(i2cdev);
+	i2cOpen(&cdev, scl, sda, freq);
+}
+
 bool I2CBus::getLineHeld() {
 	return ((INA >> scl) & 1 == 0);
 }
