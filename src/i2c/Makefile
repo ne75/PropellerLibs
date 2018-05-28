@@ -1,41 +1,50 @@
 PROPGCC = /opt/parallax
 CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
+AR = $(PROPGCC)/bin/propeller-elf-ar
 
-MMODEL = cog
-BOARD = QUICKSTART
+MMODEL = cmm
 
-TARGET = multiPWM
+LIBDIR = $(MMODEL)
+LIBTARGET = libi2c
+LIBNAME = i2c
+INCLFILES = i2cbus.h i2cdev.h
 
-PORT = /dev/ttyUSB0
-OBJDIR = ../../build/$(TARGET)
+OBJDIR = build
 
-LOAD_MODE = load
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -DCLKFREQ=80000000
+LIBS = -lhd44780
+LFLAGS = -L./$(MMODEL)/
 
-LOADFLAGS = -Dreset=dtr -S50
+PORT = /dev/cu.usbserial-*
+LOAD_MODE = load_eeprom
+LOADFLAGS = -Dreset=dtr -S5
 
-.PHONY: all setup load load_eeprom clean
+.PHONY: all setup lib clean
 
-all: setup $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
+all: setup $(LIBDIR)/$(LIBTARGET).a
+
+lib: setup $(LIBDIR)/$(LIBTARGET).a
 
 setup:
-	$(shell pkill propeller-load)
 	mkdir -p $(OBJDIR)
+	mkdir -p $(LIBDIR)
 
-$(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
-		$(CC) $(INCLUDES) $(LFLAGS) -o $@ -m$(MMODEL) $(CFLAGS) $^ $(LIBS)
-		$(PROPGCC)/bin/propeller-elf-size $(OBJDIR)/$(TARGET).elf
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/i2cbus.o $(OBJDIR)/i2cdev.o
+		$(AR) rcs $@ $^
 
-$(OBJDIR)/$(TARGET).o: main.cpp
+$(OBJDIR)/i2cbus.o: i2cbus.cpp i2cbus.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
-load: $(OBJDIR)/$(TARGET).elf
-		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -r -v $<
+$(OBJDIR)/i2cdev.o: i2cdev.cpp i2cdev.h
+		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
-load_eeprom: $(OBJDIR)/$(TARGET).elf
-		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -e -r -v $<
+install: lib
+	mkdir -p ../../lib/$(MMODEL)
+	cp $(LIBDIR)/$(LIBTARGET).a ../../lib/$(LIBDIR)/$(LIBTARGET).a
+	cp $(INCLFILES) ../../include/proplibs/
 
 clean:
-	rm -rf $(OBJDIR)/*
+	rm -rf $(OBJDIR)/
+	rm -rf $(LIBDIR)/
