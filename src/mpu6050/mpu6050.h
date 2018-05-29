@@ -1,11 +1,9 @@
 #ifndef _MPU6050_H
 #define _MPU6050_H
 
-#include <cstdint>
-#include <cstdbool>
-#include <cstdfix>
-
-#include "geo.h"
+#include <stdbool.h>
+#include <stdfix.h>
+#include <stdint.h>
 
 #ifdef LIB_COMPILE
     #include "i2c/i2cbus.h"
@@ -15,14 +13,44 @@
     #include "proplibs/i2cdev.h"
 #endif
 
-class MPU6050 {
+#include "geo.h"
+
+
+
+class MPU6050 : public I2CDevice {
 
 private:
+
+    uint8_t id;
+
+    vec3f gyro_bias;        // Aka the constant drift.
+    vec3f angle_offset;
+
+    float gyro_fs;          // picking the appropriate FS value determines resolution. Tune.
+    float accel_fs;
+
+    float gs;
+    float as;
+
+    quatf orientation;      // the orientation of the IMU when level
+
+    float filter_weight;
+    uint16_t filter_freq;
+    uint32_t filter_stack[1024];
+
+
+public:
+    vec3f gyro;
+    vec3f accel;
+    quatf q;
+    uint16_t temp;          // not currently in use.
+
+    uint32_t filt_time;
+
+
     enum {
         IMU_CAM = 0,
         IMU_FRAME,
-
-        // nothing after this line
         IMU_MAX
     };
 
@@ -36,34 +64,11 @@ private:
 
     enum {
         ACCEL_FS_2G = 0,
-        ACCEL_FS_4G
+        ACCEL_FS_4G,
         ACCEL_FS_8G,
         ACCEL_FS_16G
     };
 
-    uint8_t id;
-
-    quatf q;
-
-    vec3f accel;
-    vec3f gyro;
-    uint16_t temp;
-
-    vec3f gyro_bias;
-    vec3f angle_offset;
-
-    float gyro_fs;
-    float accel_fs;
-
-    float gs;
-    float as;
-
-    quatf orientation; // the orientation of the IMU when level
-
-    bool service;
-
-
-public:
 
     MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation);
 
@@ -108,13 +113,7 @@ public:
      */
     void initFilter(uint16_t f, float w);
 
-    // eventually remove this definition
-    void runFilter();
+    static void runFilter(void *par);
 
-    /**
-     * service the IMU interrupt
-     */
-    void serviceImu();
-    }
-}
+};
 #endif

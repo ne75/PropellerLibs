@@ -3,6 +3,58 @@
 
 #include <math.h>
 
+struct quatf {
+public:
+
+    float w;
+    float x;
+    float y;
+    float z;
+
+    quatf() {
+        w = 1.0;
+        x = 0;
+        y = 0;
+        z = 0;
+    }
+
+    quatf(float w, float x, float y, float z) {
+        this->w = w;
+        this->x = x;
+        this->y = y;
+        this->z = z;
+    }
+
+    quatf operator*(quatf rhs) {
+        return quatf(
+                (w*rhs.w - x*rhs.x - y*rhs.y - z*rhs.z),
+                (w*rhs.x + x*rhs.w + y*rhs.z - z*rhs.y),
+                (w*rhs.y - x*rhs.z + y*rhs.w + z*rhs.x),
+                (w*rhs.z + x*rhs.y - y*rhs.x + z*rhs.w));
+    }
+
+    void operator=(quatf rhs) {
+        w=rhs.w;
+        x=rhs.x;
+        y=rhs.y;
+        z=rhs.z;
+    }
+
+    quatf conj() {
+        return quatf(w, -x, -y, -z);
+    }
+
+    float length() {
+        return sqrt(w*w + x*x + y*y + z*z);
+    }
+
+    quatf normalize() {
+        float n = length();
+        return quatf(w/n, x/n, y/n, z/n);
+    }
+};
+
+
 struct vec3f {
 public:
     vec3f() {
@@ -49,7 +101,7 @@ public:
 
     vec3f cross(vec3f rhs) {
         return vec3f(y * rhs.z - z * rhs.y,
-                    z * rhs.x - x * rhs.z,
+                    x * rhs.z - z * rhs.x,
                     x * rhs.y - y * rhs.x);
     }
 
@@ -79,16 +131,17 @@ public:
         return v*cos(t)+(k.cross(v))*sin(t)+(k*(k.dot(v))*(1-cos(t)));
     }
 
-     vec3f rotate(quatf q) {
-        // Rotate by quat.
-        quatf pq = {0, this->x, this->y, this->z};
-        quat pq1 = (q*pq)*(q.conj());
-        return (vec3f) {pq1.x, pq1.y, pq1.z};
+    vec3f rotate(quatf q) {
+
+        quatf p(0, x, y, z);
+        quatf pq = (q*p)*q.conj();
+        return vec3f(pq.x, pq.y, pq.z);
     }
 
     float x;
     float y;
     float z;
+
 };
 
 struct vec2f {
@@ -142,59 +195,5 @@ public:
     float x;
     float y;
 };
-
-struct quatf {
-public:
-
-    float w;
-    float x;
-    float y;
-    float z;
-
-    quatf() {
-        w = 1.0;
-        x = 0;
-        y = 0;
-        z = 0;
-    }
-
-    quatf(float w, float x, float y, float z) {
-        this->w = w;
-        this->x = x;
-        this->y = y;
-        this->z = z;
-    }
-
-    quatf operator*(quatf rhs) {
-        return quatf(
-                (w*rhs.w - x*rhs.x - y*rhs.y - z*rhs.z),
-                (w*rhs.x + x*rhs.w + y*rhs.z - z*rhs.y),
-                (w*rhs.y - x*rhs.z + y*rhs.w + z*rhs.x),
-                (w*rhs.z + x*rhs.y - y*rhs.x + z*rhs.w));
-    }
-
-    void operator=(quatf rhs) {
-        w=rhs.w;
-        x=rhs.x;
-        y=rhs.y;
-        z=rhs.z;
-    }
-
-    quatf conj() {
-        return quatf(w, -x, -y, -z);
-    }
-
-    float length() {
-        return sqrt(w*w + x*x + y*y + z*z);
-    }
-
-    quatf normalize() {
-        float n = length();
-        return quatf(w/n, x/n, y/n, z/n);
-    }
-
-
-};
-
 
 #endif
