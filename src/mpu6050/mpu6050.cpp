@@ -11,13 +11,6 @@
 #define REG_PWR_MGMT_1      0x6B
 #define REG_WHO_AM_I        0x75
 
-
-// Globals used in the ISR.
-
-vec3f start = vec3f(0,0,0);
-
-
-
 // NOTE: In the I2CDevice constructor, be careful to shift the address (see i2c documentation as needed)!
 
 MPU6050::MPU6050(I2CBus * bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation) : I2CDevice(bus, (MPU6050_BASE_ADDR + id)<< 1) {
@@ -129,9 +122,9 @@ void MPU6050::readData() {
     gyro.z = (float)(int16_t)(rawData[12] << 8 | rawData[13]);
 
     // I'm finding that all three axes are flipped on the accel, leading to a left hand system
-    accel.x *= -as;
-    accel.y *= -as;
-    accel.z *= -as;
+    accel.x *= as;
+    accel.y *= as;
+    accel.z *= as;
 
     gyro.x *= gs;
     gyro.y *= gs;
@@ -148,8 +141,8 @@ void MPU6050::measureGyroBias() {
 
     float i;
     int t = CNT;
-    // take 1 second of measurements
-    while (CNT < t + CLKFREQ) {
+    // take 2 second of measurements
+    while (CNT < t + 2*CLKFREQ) {
         i++;
         readData();
 
@@ -170,38 +163,32 @@ void MPU6050::initFilter(uint16_t f, float w) {
 void MPU6050::runFilter(void * par) {
 
     MPU6050 *imu = (MPU6050*)par;
-    DIRA |= 1 << 16;
 
     volatile uint32_t t = CNT;
 
     while(1) {
-        OUTA ^= 1 << 16;
+        imu->readData();
+
         quatf q = imu->q;
-        // instead of multiplying by a dynamic orientations, we should just define a mapping that will be applied in readData
-        vec3f g = imu->gyro;//.rotate(imu->orientation);
-        vec3f a = imu->accel;//.rotate(imu->orientation);
+        vec3f g = imu->gyro.rotate(imu->orientation);
+        vec3f a = imu->accel.rotate(imu->orientation);
 
-        //vec3f expected_a = vec3f(0,0,-1).rotate(q.conj());
-        // We need to simplify this, can be about 2x faster
-        vec3f expected_a = vec3f(2*(q.w*q.y - q.x*q.z), -2*(q.w*q.x+q.y*q.z), (-q.w*q.w+q.x*q.x+q.y*q.y-q.z*q.z));
-
-        vec3f err = a.cross(expected_a);
-        err.y *= -1;
+        vec3f a_exp = vec3f(0,0,1).rotate(q);
+        vec3f err = a.cross(a_exp);
         err = err*imu->filter_weight;
+        imu->err = a_exp;
 
         g = g+err;
         quatf qgyro;
         qgyro.x = g.x/(imu->filter_freq*2);
         qgyro.y = g.y/(imu->filter_freq*2);
-        qgyro.z = 0; //g.z/(imu->filter_freq*2);;
-        qgyro.w = 1.0 - (qgyro.x*qgyro.x + qgyro.y*qgyro.y + qgyro.z*qgyro.z)/2;
+        qgyro.z = g.z/(imu->filter_freq*2);
+        qgyro.w = 1.0 - (qgyro.x*qgyro.x + qgyro.y*qgyro.y + qgyro.z*qgyro.z)/2.0;
 
         imu->q = (qgyro*q);
 
-        imu->readData();
-
         imu->filt_time = CNT - t;
-        waitcnt(t+= CLKFREQ/imu->filter_freq);
+        waitcnt(t += CLKFREQ/imu->filter_freq);
     }
 
 }

@@ -13,9 +13,8 @@ INCLDIR = include
 PLDIR = proplibs
 SRCDIR = src
 
-.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050)$(LIBSSD1306) clean
+.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBSSD1306) clean
 
-## removed to temporarily fix the lib build. Please put back when MPU6050 will compile successfully (should branch to work on)
 all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050)  $(LIBSSD1306)
 
 setup:

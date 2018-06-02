@@ -36,8 +36,9 @@ private:
 
     float filter_weight;
     uint16_t filter_freq;
-    uint32_t filter_stack[1024];
+    uint32_t filter_stack[512];
 
+    static void runFilter(void *par);
 
 public:
     vec3f gyro;
@@ -46,7 +47,7 @@ public:
     uint16_t temp;          // not currently in use.
 
     uint32_t filt_time;
-
+    vec3f err;
 
     enum {
         IMU_CAM = 0,
@@ -112,8 +113,6 @@ public:
      * w:   gyro data weight
      */
     void initFilter(uint16_t f, float w);
-
-    static void runFilter(void *par);
 
 };
 #endif

@@ -27,10 +27,10 @@ public:
 
     quatf operator*(quatf rhs) {
         return quatf(
-                (w*rhs.w - x*rhs.x - y*rhs.y - z*rhs.z),
-                (w*rhs.x + x*rhs.w + y*rhs.z - z*rhs.y),
-                (w*rhs.y - x*rhs.z + y*rhs.w + z*rhs.x),
-                (w*rhs.z + x*rhs.y - y*rhs.x + z*rhs.w));
+                (w * rhs.w - x * rhs.x - y * rhs.y - z * rhs.z),
+                (w * rhs.x + z * rhs.y - y * rhs.z + x * rhs.w),
+                (w * rhs.y + x * rhs.z + y * rhs.w - z * rhs.x),
+                (y * rhs.x - x * rhs.y + w * rhs.z + z * rhs.w));
     }
 
     void operator=(quatf rhs) {
@@ -100,9 +100,9 @@ public:
     }
 
     vec3f cross(vec3f rhs) {
-        return vec3f(y * rhs.z - z * rhs.y,
-                    x * rhs.z - z * rhs.x,
-                    x * rhs.y - y * rhs.x);
+        return vec3f((y * rhs.z) - (z * rhs.y),
+                    (z * rhs.x) - (x * rhs.z),
+                    (x * rhs.y) - (y * rhs.x));
     }
 
     float dot(vec3f rhs) {
@@ -132,11 +132,11 @@ public:
     }
 
     vec3f rotate(quatf q) {
-
         quatf p(0, x, y, z);
-        quatf pq = (q*p)*q.conj();
+        quatf pq = q*p*q.conj();
         return vec3f(pq.x, pq.y, pq.z);
     }
+
 
     float x;
     float y;
