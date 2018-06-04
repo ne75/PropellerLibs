@@ -5,31 +5,24 @@ LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
 
 MMODEL = cmm
-
-CUAIRPROPLIBS = /opt/PropellerLibraries
-
-#OBJDIR is hardcoded.
 BOARD = QUICKSTART
-OBJDIR = ./obj
 
 TARGET = bldc-example
 LIBDIR = $(MMODEL)
 LIBTARGET = libbldc
 LIBNAME = bldc
-INCLFILES = bldc.h
+INCLFILES = bldc.h bldc_cog.h
 
-PORT = /dev/cu.usb*
+OBJDIR = build
 
-#Loaded into the EEPROM.
-LOAD_MODE = load
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -DCLKFREQ=80000000
 
-DEADCODESTRIP = -Wl,-static -fdata-sections -ffunction-sections -Wl,--gc-sections -Wl,-s
-
-CFLAGS =  -Os -n -m32bit-doubles -fno-exceptions -I$(CUAIRPROPLIBS)/include -DCLKFREQ=80000000
+LIBS = -lbldc
 LFLAGS = -L./$(MMODEL)/
-LOADFLAGS = -Dreset=dtr -S5 -t
 
- LIBS = -lbldc
+PORT = /dev/cu.usbserial-*
+LOAD_MODE = load_eeprom
+LOADFLAGS = -Dreset=dtr -S5
 
 .PHONY: all config load clean
 
@@ -69,6 +62,11 @@ load: $(OBJDIR)/$(TARGET).elf
 
 load_eeprom: $(OBJDIR)/$(TARGET).elf
 		$(LOAD) $(LOADFLAGS) -b $(BOARD) -p $(PORT) -I $(PROPGCC)/propeller-load -e -r -v $<
+
+install: lib
+	mkdir -p ../../lib/$(MMODEL)
+	cp $(LIBDIR)/$(LIBTARGET).a ../../lib/$(LIBDIR)/$(LIBTARGET).a
+	cp $(INCLFILES) ../../include/proplibs/
 
 clean:
 	rm -rf $(OBJDIR)/

@@ -1,21 +1,23 @@
-# directory names of every library in src
+# directory names of every library in src. List in the order they should be built
 LIBI2C = i2c
 
 LIBHD44770 = hd44780
 LIBM24512 = m24512
 LIBMPU6050 = mpu6050
 LIBSSD1306 = ssd1306
+LIBMCP2515 = mcp2515
+LIBBLDC = bldc
 
-PREFIX = /opt/PropellerLibraries
+PREFIX = /opt/PropellerLibraries # where to install the libraries
 
 LIBDIR = lib
 INCLDIR = include
 PLDIR = proplibs
 SRCDIR = src
 
-.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBSSD1306) clean
+.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) clean
 
-all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050)  $(LIBSSD1306)
+all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050)  $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC)
 
 setup:
 	mkdir -p $(LIBDIR)
@@ -46,6 +48,14 @@ $(LIBSSD1306):
 	cd $(SRCDIR)/$@ && make lib
 	cd $(SRCDIR)/$@ && make install
 
+$(LIBMCP2515):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
+$(LIBBLDC):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
 clean:
 	rm -rf $(LIBDIR)/
 	rm -rf $(INCLDIR)/
@@ -54,3 +64,5 @@ clean:
 	cd $(SRCDIR)/$(LIBM24512) && make clean
 	cd $(SRCDIR)/$(LIBMPU6050) && make clean
 	cd $(SRCDIR)/$(LIBSSD1306) && make clean
+	cd $(SRCDIR)/$(LIBMCP2515) && make clean
+	cd $(SRCDIR)/$(LIBBLDC) && make clean
