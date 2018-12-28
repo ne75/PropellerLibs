@@ -3,7 +3,7 @@ CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
 
-MMODEL = cmm
+MMODEL ?= cmm
 BOARD = QUICKSTART
 
 LIBDIR = $(MMODEL)
@@ -11,7 +11,7 @@ LIBTARGET = libm24512
 LIBNAME = m24512
 INCLFILES = m24512.h
 
-OBJDIR = build
+OBJDIR = build_$(MMODEL)
 
 CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 

@@ -3,37 +3,38 @@ CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
 
-MMODEL ?= cmm
+MMODEL ?= lmm
 BOARD = QUICKSTART
 
-TARGET = mcp2515-example
+TARGET = sam-m8q-example
 LIBDIR = $(MMODEL)
-LIBTARGET = libmcp2515
-LIBNAME = mcp2515
-INCLFILES = mcp2515.h
+LIBTARGET = libsam-m8q
+LIBNAME = sam-m8q
+INCLFILES = sam-m8q.h
 
 OBJDIR = build_$(MMODEL)
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 
-LIBS = -lmcp2515
-LFLAGS = -L./$(MMODEL)/
+LIBS = -lm -lsam-m8q -li2c -lfmath
+LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL)
 
 PORT = /dev/cu.usbserial-*
-LOAD_MODE = load_eeprom
-LOADFLAGS = -Dreset=dtr -S5
+LOAD_MODE = load
+LOADFLAGS = -Dreset=dtr -S5 -t
 
-.PHONY: all setup lib load load_eeprom clean install
+.PHONY: all setup lib load load_eeprom clean
 
-all: setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
+all: clean setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
 
 lib: setup $(LIBDIR)/$(LIBTARGET).a
 
 setup:
+	$(shell pkill propeller-load)
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/mcp2515.o
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/sam-m8q.o
 		$(AR) rcs $@ $<
 
 $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
@@ -43,7 +44,7 @@ $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
 $(OBJDIR)/$(TARGET).o: demo.cpp
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
-$(OBJDIR)/mcp2515.o: mcp2515.cpp mcp2515.h
+$(OBJDIR)/sam-m8q.o: sam-m8q.cpp sam-m8q.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 load: $(OBJDIR)/$(TARGET).elf

@@ -2,27 +2,29 @@ PROPGCC = /opt/parallax
 CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
+OBJCOPY = $(PROPGCC)/bin/propeller-elf-objcopy
 
 MMODEL ?= cmm
 
+TARGET = fmath-example
 LIBDIR = $(MMODEL)
-LIBTARGET = libi2c
-LIBNAME = i2c
-INCLFILES = i2cbus.h i2cdev.h
+LIBTARGET = libfmath
+INCLFILES = fmath.h
 
 OBJDIR = build_$(MMODEL)
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -std=c99
 
-LFLAGS = -L./$(MMODEL)/
+LIBS = -lfmath
+LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL)
 
 PORT = /dev/cu.usbserial-*
-LOAD_MODE = load_eeprom
-LOADFLAGS = -Dreset=dtr -S5
+LOAD_MODE = load
+LOADFLAGS = -Dreset=dtr -S5 -Dclkfreq=104000000
 
-.PHONY: all setup lib clean
+.PHONY: all setup lib clean load load_eeprom
 
-all: setup $(LIBDIR)/$(LIBTARGET).a
+all: clean setup $(LIBDIR)/$(LIBTARGET).a
 
 lib: setup $(LIBDIR)/$(LIBTARGET).a
 
@@ -30,13 +32,10 @@ setup:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/i2cbus.o $(OBJDIR)/i2cdev.o
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/fmath.o
 		$(AR) rcs $@ $^
 
-$(OBJDIR)/i2cbus.o: i2cbus.cpp i2cbus.h
-		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
-
-$(OBJDIR)/i2cdev.o: i2cdev.cpp i2cdev.h
+$(OBJDIR)/fmath.o: fmath.c fmath.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 install: lib

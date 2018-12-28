@@ -4,7 +4,7 @@ OBJCOPY = $(PROPGCC)/bin/propeller-elf-objcopy
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
 
-MMODEL = cmm
+MMODEL ?= cmm
 BOARD = QUICKSTART
 
 TARGET = bldc-example
@@ -13,9 +13,9 @@ LIBTARGET = libbldc
 LIBNAME = bldc
 INCLFILES = bldc.h bldc_cog.h
 
-OBJDIR = build
+OBJDIR = build_$(MMODEL)
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -DCLKFREQ=80000000
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
 
 LIBS = -lbldc
 LFLAGS = -L./$(MMODEL)/

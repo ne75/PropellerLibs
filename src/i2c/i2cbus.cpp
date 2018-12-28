@@ -26,7 +26,7 @@ bool I2CBus::getLineHeld() {
 }
 
 bool I2CBus::pollDevice(i2c_dev *dev) {
-	return i2cWrite(i2cdev, dev->adr, 0, 0, false) == 0;
+	return i2cWrite(i2cdev, dev->adr, 0, 0, true) == 0;
 }
 
 bool I2CBus::writeByte(i2c_dev *dev, uint8_t b, bool stop) {

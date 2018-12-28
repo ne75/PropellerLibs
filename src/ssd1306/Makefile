@@ -3,7 +3,7 @@ CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
 
-MMODEL = cmm
+MMODEL ?= cmm
 BOARD = QUICKSTART
 
 TARGET = ssd1306-example
@@ -12,7 +12,7 @@ LIBTARGET = libssd1306
 LIBNAME = ssd1306
 INCLFILES = ssd1306.h
 
-OBJDIR = build
+OBJDIR = build_$(MMODEL)
 
 CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 

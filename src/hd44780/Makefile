@@ -3,7 +3,7 @@ CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
 
-MMODEL = cmm
+MMODEL ?= cmm
 BOARD = QUICKSTART
 
 TARGET = hd44780-example
@@ -12,7 +12,7 @@ LIBTARGET = libhd44780
 LIBNAME = hd44780
 INCLFILES = hd44780.h
 
-OBJDIR = build
+OBJDIR = build_$(MMODEL)
 
 CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
 

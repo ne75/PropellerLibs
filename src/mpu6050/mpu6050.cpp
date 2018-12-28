@@ -13,20 +13,16 @@
 
 // NOTE: In the I2CDevice constructor, be careful to shift the address (see i2c documentation as needed)!
 
-MPU6050::MPU6050(I2CBus * bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation) : I2CDevice(bus, (MPU6050_BASE_ADDR + id)<< 1) {
+MPU6050::MPU6050(I2CBus * bus, uint8_t id, uint8_t gfs, uint8_t afs) : I2CDevice(bus, (MPU6050_BASE_ADDR + id)<< 1) {
     this->id = id;
     this->gyro_fs = gfs;
     this->accel_fs = afs;
-    this->orientation = orientation;
-    this->q = quatf(1.0,0.0,0.0,0.0);
 
 }
 
 bool MPU6050::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
     dev.data[0] = reg;
-    //printf("# Writing to register address: %x\n",dev.data[0]);
     memcpy(&(dev.data[1]), d, s);
-    //printf("# Copying Bytes: %d\n",dev.data[1]);
     bool ret = bus->writeData(&dev, dev.data, s+1, true);
 
     return ret;
@@ -152,44 +148,5 @@ void MPU6050::measureGyroBias() {
     }
 
     gyro_bias = bias / i;
-}
-
-void MPU6050::initFilter(uint16_t f, float w) {
-    filter_freq = f;
-    filter_weight = w;
-    cogstart(&runFilter, (void*)this, filter_stack, sizeof(filter_stack));
-}
-
-void MPU6050::runFilter(void * par) {
-
-    MPU6050 *imu = (MPU6050*)par;
-
-    volatile uint32_t t = CNT;
-
-    while(1) {
-        imu->readData();
-
-        quatf q = imu->q;
-        vec3f g = imu->gyro.rotate(imu->orientation);
-        vec3f a = imu->accel.rotate(imu->orientation);
-
-        vec3f a_exp = vec3f(0,0,1).rotate(q);
-        vec3f err = a.cross(a_exp);
-        err = err*imu->filter_weight;
-        imu->err = a_exp;
-
-        g = g+err;
-        quatf qgyro;
-        qgyro.x = g.x/(imu->filter_freq*2);
-        qgyro.y = g.y/(imu->filter_freq*2);
-        qgyro.z = g.z/(imu->filter_freq*2);
-        qgyro.w = 1.0 - (qgyro.x*qgyro.x + qgyro.y*qgyro.y + qgyro.z*qgyro.z)/2.0;
-
-        imu->q = (qgyro*q);
-
-        imu->filt_time = CNT - t;
-        waitcnt(t += CLKFREQ/imu->filter_freq);
-    }
-
 }
 

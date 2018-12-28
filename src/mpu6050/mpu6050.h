@@ -1,6 +1,13 @@
 #ifndef _MPU6050_H
 #define _MPU6050_H
 
+/**
+ *
+ * This library needs to be re-built using fixed point math. float point version should be built on top of the fix version.
+ * MPU9250 will be made with fixed point, and once that works, this should be based on it.
+ *
+ */
+
 #include <stdbool.h>
 #include <stdfix.h>
 #include <stdint.h>
@@ -14,8 +21,6 @@
 #endif
 
 #include "geo.h"
-
-
 
 class MPU6050 : public I2CDevice {
 
@@ -32,22 +37,11 @@ private:
     float gs;
     float as;
 
-    quatf orientation;      // the orientation of the IMU when level
-
-    float filter_weight;
-    uint16_t filter_freq;
-    uint32_t filter_stack[512];
-
-    static void runFilter(void *par);
-
 public:
     vec3f gyro;
     vec3f accel;
     quatf q;
     uint16_t temp;          // not currently in use.
-
-    uint32_t filt_time;
-    vec3f err;
 
     enum {
         IMU_CAM = 0,
@@ -71,7 +65,7 @@ public:
     };
 
 
-    MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs, quatf orientation);
+    MPU6050(I2CBus *bus, uint8_t id, uint8_t gfs, uint8_t afs);
 
      /*
      * write a register to the MPU6050
@@ -104,15 +98,6 @@ public:
      * calibrate the imu's gyro. IMU must be still while this is happening
      */
     void measureGyroBias();
-
-    /**
-     *
-     * Start a timer at f Hz to read IMU data and filter it
-     *
-     * f:   filter frequency
-     * w:   gyro data weight
-     */
-    void initFilter(uint16_t f, float w);
 
 };
 #endif
