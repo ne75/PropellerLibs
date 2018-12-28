@@ -146,14 +146,8 @@ bool SAM_M8Q::process(uint8_t n) {
 
 
 bool SAM_M8Q::update() {
-    updated = false;
-
-    // keep reading until we read out an enitre packet of 0xff
-    do {
-        readReg(REG_DAT_STREAM, 32);
-    } while(!process(32));
-
-    return updated;
+    readReg(REG_DAT_STREAM, 32);
+    process(32);
 }
 
 void SAM_M8Q::parseTime(uint8_t *dat) {
