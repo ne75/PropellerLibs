@@ -6,35 +6,34 @@ AR = $(PROPGCC)/bin/propeller-elf-ar
 MMODEL ?= cmm
 BOARD = QUICKSTART
 
-TARGET = sam-m8q-example
+TARGET = qkf-example
 LIBDIR = $(MMODEL)
-LIBTARGET = libsam-m8q
-LIBNAME = sam-m8q
-INCLFILES = sam-m8q.h
+LIBTARGET = libqkf
+LIBNAME = qkf
+INCLFILES = qkf.h
 
 OBJDIR = build_$(MMODEL)
 
 CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 
-LIBS = -lm -lsam-m8q -li2c -lfmath
-LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL)
+LIBS = -lqkf -lmpu9250 -li2c -lfmath -lsam-m8q
+LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL) -L../mpu9250/$(MMODEL) -L../sam-m8q/$(MMODEL)
 
 PORT = /dev/cu.usbserial-*
-LOAD_MODE = load
+LOAD_MODE = load_eeprom
 LOADFLAGS = -Dreset=dtr -S5 -t -Dclkfreq=104000000
 
-.PHONY: all setup lib load load_eeprom clean
+.PHONY: all setup lib load load_eeprom clean install
 
-all: clean setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
+all: setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
 
 lib: setup $(LIBDIR)/$(LIBTARGET).a
 
 setup:
-	$(shell pkill propeller-load)
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/sam-m8q.o
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/qkf.o
 		$(AR) rcs $@ $<
 
 $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
@@ -44,7 +43,7 @@ $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
 $(OBJDIR)/$(TARGET).o: demo.cpp
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
-$(OBJDIR)/sam-m8q.o: sam-m8q.cpp sam-m8q.h
+$(OBJDIR)/qkf.o: qkf.cpp qkf.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 load: $(OBJDIR)/$(TARGET).elf

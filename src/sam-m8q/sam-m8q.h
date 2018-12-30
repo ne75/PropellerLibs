@@ -18,14 +18,13 @@ class SAM_M8Q : public I2CDevice {
 
 private:
 
-    bool updated;
+    unsigned parser_stack[100];
+    uint8_t parser_bytes_available;
     uint8_t nmea_buf[100];
     uint8_t nmea_buf_ptr;
 
     void parseGGA(uint8_t *dat);
     void parseNMEASentence();
-    bool process(uint8_t n);
-
     void parseTime(uint8_t *dat);
     void parseLatitude(uint8_t *dat, uint8_t *unit);
     void parseLongitude(uint8_t *dat, uint8_t *unit);
@@ -34,6 +33,8 @@ private:
     void parseHDOP(uint8_t *dat);
     void parseAltitude(uint8_t *dat, uint8_t *unit);
     void parseGeoidalSep(uint8_t *dat, uint8_t *unit);
+
+    static void parser(void *par);
 
     uint8_t _cutFirstComma(uint8_t *dat);
 
@@ -55,11 +56,15 @@ public:
     uint8_t n_sats;
     f16_t hdop;
 
+    uint8_t packet_count;
+
     enum {
         GPS_NO_FIX = 0,
         GPS_FIX,
         GPS_DIFF_FIX
     };
+
+    int test;
 
     /*
      *
@@ -88,13 +93,18 @@ public:
     bool setup();
 
     /*
-     * read out a NMEA string and process out.
+     * read n bytes from teh GPS
      *
-     * this functions reads 32 bytes. If a NMEA string start delim. is found, it will keep reading to find the whole string
-     * and return true once the data has been parsed out
-     * If the start is not found in the first 32 bytes (which will likely be 0xff for the whole set of bytes), return false.
+     * returns false if the parser is still processing the previous bytes
      */
-    bool update();
+    bool read(uint8_t n);
+
+    /*
+     * process the latest bytes that were read in by read.
+     *
+     * returns false if the entire packet was empty.
+     */
+    bool process(uint8_t n);
 
 };
 #endif

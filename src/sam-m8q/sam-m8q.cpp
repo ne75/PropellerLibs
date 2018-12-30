@@ -5,7 +5,6 @@
 
 // Register list
 #define SAM_M8Q_BASE_ADDR   0x42
-
 #define REG_NBYTES_H        0xFD // 2 byte
 #define REG_DAT_STREAM      0xFF
 
@@ -14,6 +13,7 @@
 SAM_M8Q::SAM_M8Q(I2CBus *bus) : I2CDevice(bus, (SAM_M8Q_BASE_ADDR)<< 1) {
     connected = false;
     nmea_buf_ptr = 0;
+    packet_count = 0;
 }
 
 bool SAM_M8Q::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
@@ -36,10 +36,11 @@ bool SAM_M8Q::isConnected() {
 }
 
 bool SAM_M8Q::setup() {
-    // no setup to do
+    // start the parser cog
+    cogstart(&parser, (void*)this, parser_stack, sizeof(parser_stack));
+
     this->connected = true;
     return true;
-
 }
 
 /*
@@ -59,6 +60,7 @@ uint8_t SAM_M8Q::_cutFirstComma(uint8_t *dat) {
 }
 
 void SAM_M8Q::parseGGA(uint8_t *dat) {
+    packet_count++;
 
     // split out the data fields into separate strings
     uint8_t *t_str = dat;
@@ -109,7 +111,6 @@ void SAM_M8Q::parseGGA(uint8_t *dat) {
 }
 
 void SAM_M8Q::parseNMEASentence() {
-    updated = true;
     nmea_buf[nmea_buf_ptr-1] = 0; // remove extra new lines
     nmea_buf[nmea_buf_ptr-2] = 0;
     //printf("NMEA Sentance: %s\n", nmea_buf);
@@ -140,14 +141,16 @@ bool SAM_M8Q::process(uint8_t n) {
         }
     }
 
-    return nodatctr == n;
+    return nodatctr != n;
 }
 
 
 
-bool SAM_M8Q::update() {
-    readReg(REG_DAT_STREAM, 32);
-    process(32);
+bool SAM_M8Q::read(uint8_t n) {
+    if (parser_bytes_available > 0) return false;
+    readReg(REG_DAT_STREAM, n);
+    parser_bytes_available = n;
+    return true;
 }
 
 void SAM_M8Q::parseTime(uint8_t *dat) {
@@ -231,4 +234,18 @@ void SAM_M8Q::parseGeoidalSep(uint8_t *dat, uint8_t *unit) {
     if (dat[0] == 0) return;
     if (unit[0] == 0) return;
     geoidal_sep = f16_t((float)atof((char*)dat));
+}
+
+void SAM_M8Q::parser(void *par) {
+
+    SAM_M8Q *gps = (SAM_M8Q*)par;
+
+
+    while(1) {
+        if (gps->parser_bytes_available > 0) {
+            gps->process(gps->parser_bytes_available);
+            gps->parser_bytes_available = 0;
+        }
+        waitcnt(CLKFREQ/10000 + CNT); // always need this little wait for some reason
+    }
 }

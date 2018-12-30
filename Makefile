@@ -9,6 +9,7 @@ LIBMCP2515 = mcp2515
 LIBMPU9250 = mpu9250
 LIBSAM_M8Q = sam-m8q
 LIBBLDC = bldc
+LIBQKF = qkf
 
 PREFIX = /opt/PropellerLibraries # where to install the libraries
 
@@ -20,9 +21,9 @@ MMODEL ?= cmm # by default build using CMM
 
 export
 
-.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) clean
+.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) clean
 
-all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH)
+all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF)
 
 setup:
 	mkdir -p $(LIBOUTDIR)
@@ -73,6 +74,10 @@ $(LIBFMATH):
 	cd $(SRCDIR)/$@ && make lib
 	cd $(SRCDIR)/$@ && make install
 
+$(LIBQKF):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
 clean:
 	rm -rf ./$(LIBOUTDIR)
 	rm -rf ./$(INCLDIR)
@@ -86,4 +91,5 @@ clean:
 	cd $(SRCDIR)/$(LIBBLDC) && make clean
 	cd $(SRCDIR)/$(LIBFMATH) && make clean
 	cd $(SRCDIR)/$(LIBSAM_M8Q) && make clean
+	cd $(SRCDIR)/$(LIBQKF) && make clean
 
