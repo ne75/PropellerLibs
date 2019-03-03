@@ -39,10 +39,11 @@ public:
     bool h_valid;
     vec3f16 h_scale;
     vec3f16 h_offset;
+
     vec3f16 north;
     vec3f16 north_norm; // unit vector pointing to local magnetic north (after calibration)
-
     f16_t north_mag;
+    quatf16 qn;
 
 
     // Full scale gyro/accel values
@@ -115,6 +116,11 @@ public:
      * measure static magnetic field to determine north
      */
     void calibrateNorth();
+
+    /*
+     * set the north vector. will compute normalize north, north magnitude, and geo north transform.
+     */
+    void setNorth(vec3f16 n);
 
 };
 #endif

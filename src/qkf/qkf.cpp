@@ -7,10 +7,20 @@ QKF::QKF() {
     in_lock_id = locknew();
     lockclr(out_lock_id);
     lockclr(in_lock_id);
+
+    setup_complete = false;
 }
 
-void QKF::start() {
-    cogstart(estimator, (void*)this, estimator_stack, sizeof(estimator_stack));
+void QKF::setup(vec3f16 g, vec3f16 h) {
+
+
+    setup_complete = true;
+}
+
+bool QKF::start() {
+    if (!setup_complete) return false;
+    int cogid = cogstart(estimator, (void*)this, estimator_stack, sizeof(estimator_stack));
+    return cogid != -1;
 }
 
 void QKF::estimator(void *par) {

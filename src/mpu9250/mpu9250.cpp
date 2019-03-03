@@ -37,7 +37,7 @@ MPU9250::MPU9250(I2CBus * bus, uint8_t id, uint8_t gfs, uint8_t afs) : I2CDevice
 
     mag_dev.adr = AK8963_ADDR<<1;
 
-    bus->pollDevice(&dev);
+    qn = quatf16(F16_ONE, 0, 0, 0);
 }
 
 bool MPU9250::writeReg(uint8_t reg, uint8_t *d, uint8_t s) {
@@ -268,7 +268,22 @@ void MPU9250::calibrateNorth() {
         waitcnt(CLKFREQ/100 + CNT);
     }
 
-    north = h_tot/f16_t((float)MAG_CAL_SIZE);
+    setNorth(h_tot/f16_t((float)MAG_CAL_SIZE));
+}
+
+void MPU9250::setNorth(vec3f16 n) {
+    north = n;
     north_norm = north.normalize();
     north_mag = north.length();
+
+    f16_t cost2 = f16_t((F16_ONE + north_norm.y.x)/2).sqrt();
+    f16_t sint2 = f16_t((F16_ONE - north_norm.y.x)/2).sqrt();
+
+    vec3f16 H_p(-north_norm.z, 0, north_norm.x);
+    vec3f16 w = H_p.normalize();
+
+    qn.w = cost2;
+    qn.x = w.x*sint2;
+    qn.y = w.y*sint2;
+    qn.z = w.z*sint2;
 }

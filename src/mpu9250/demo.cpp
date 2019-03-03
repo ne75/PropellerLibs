@@ -10,7 +10,7 @@
 #define p_UART_RX           31
 
 I2CBus i2cbus(p_I2C_SCL, p_I2C_SDA, 400000);
-MPU9250 imu = MPU9250(&i2cbus, 1, MPU9250::GYRO_FS_1000, MPU9250::ACCEL_FS_2G);
+MPU9250 imu = MPU9250(&i2cbus, 0, MPU9250::GYRO_FS_1000, MPU9250::ACCEL_FS_2G);
 
 int main() {
     if (!imu.setup()) {
@@ -22,11 +22,18 @@ int main() {
 
     // the calibration should be constant, so just going to hard set it here. in implementations, store these calibrations in eeprom.
     // imu.calibrateMag();
-    imu.h_scale = vec3f16(0.807173f, 1.176833f, 1.097251f);
-    imu.h_offset = vec3f16(16.506165f, 6.624252f, -10.983040f);
+    imu.h_scale = vec3f16(1.00700f, 0.982025f, 1.011459f);
+    imu.h_offset = vec3f16(6.239731f, 13.576202f, 19.529541f);
 
-    //imu.calibrateNorth();
-    imu.north = vec3f16(-1.988083f, 10.420944f, 19.780182f);
+    // imu.calibrateNorth();
+    // printf("north is: %d %d %d; %d\n", imu.north.x, imu.north.y, imu.north.z, imu.north_mag);
+    imu.setNorth(vec3f16(3.654465f, 9.550613f, -17.477462f));
+
+    vec3f16 n = imu.qn.rotate(imu.north_norm);
+
+    printf("%f %f %f\n", (float)n.x, (float)n.y, (float)n.z);
+
+    while(1);
 
     volatile int t = CNT;
     int time = 0;

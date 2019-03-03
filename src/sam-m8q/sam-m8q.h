@@ -64,8 +64,6 @@ public:
         GPS_DIFF_FIX
     };
 
-    int test;
-
     /*
      *
      */
@@ -80,11 +78,6 @@ public:
      * read a register from the GPS module
      */
     uint8_t readReg(uint8_t reg, uint8_t s);
-
-    /*
-     * write a register to the mag in the MPU6050
-     */
-    bool writeMagReg(uint8_t reg, uint8_t *d, uint8_t s);
 
     /*
      * Implementing virtual parent method

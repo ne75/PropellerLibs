@@ -42,9 +42,13 @@ QKF qkf;
 /* Cog Stacks */
 unsigned reader_stack[100];
 
+volatile int reader_t = 0;
+
 void data_reader(void *par) {
 
+    volatile int t = 0;
     while(1) {
+        t = CNT;
         imu.readData();
 
         while(!lockset(qkf.in_lock_id));
@@ -59,31 +63,45 @@ void data_reader(void *par) {
         }
         lockclr(qkf.in_lock_id);
 
-        //gps.read(16);
+        gps.read(16);
+        reader_t = CNT - t;
+
     }
 }
 
 void calibrate_mag() {
     // the calibration should be constant, so just going to hard set it here. in implementations, store these calibrations in eeprom.
     //printf("starting calibration\n");
-    //imu.calibrateMag();
-    //printf("scale: %d %d %d\n", imu.h_scale.x, imu.h_scale.y, imu.h_scale.z);
-    //printf("offset: %d %d %d\n", imu.h_offset.x, imu.h_offset.y, imu.h_offset.z);
+    // imu.calibrateMag();
+    // printf("scale: %f %f %f\n", (float)imu.h_scale.x, (float)imu.h_scale.y, (float)imu.h_scale.z);
+    // printf("offset: %f %f %f\n", (float)imu.h_offset.x, (float)imu.h_offset.y, (float)imu.h_offset.z);
 
-    imu.h_scale = vec3f16(1.00700f, 0.982025f, 1.011459f);
-    imu.h_offset = vec3f16(6.239731f, 13.576202f, 19.529541f);
+    imu.h_scale = vec3f16(1.034760f, 0.928055f, 1.045929f);
+    imu.h_offset = vec3f16(5.737198f, 9.274826f, 18.255066f);
 
     // imu.calibrateNorth();
-    // printf("north is: %d %d %d; %d\n", imu.north.x, imu.north.y, imu.north.z, imu.north_mag);
+    // printf("north is: %f %f %f; %f\n", (float)imu.north.x, (float)imu.north.y, (float)imu.north.z, (float)imu.north_mag);
 
-    // while(1);
+    imu.setNorth(vec3f16(3.683319f, 11.300415f, -17.493881f));
 
-    imu.north = vec3f16(3.654465f, 9.550613f, -17.477462f);
-    imu.north_norm = imu.north.normalize();
-    imu.north_mag = imu.north.length();
+    printf("%f %f %f %f; %f\n", (float)imu.qn.w, (float)imu.qn.x, (float)imu.qn.y, (float)imu.qn.z, (float)imu.qn.length());
+}
+
+void get_init_orientation() {
+    printf("setting up orientation\n");
+    imu.readData();
+    vec3f16 h = imu.h.normalize();
+    vec3f16 hn = imu.qn.rotate(h);
+
+    printf("%f %f %f\n", (float)h.x, (float)h.y, (float)h.z);
+    printf("%f %f %f\n", (float)hn.x, (float)hn.y, (float)hn.z);
+
+    //printf("%f\n", (float)imu.a.dot(hn));
 }
 
 void _setup() {
+
+    printf("=== QKF Demo ===\n");
 
     DIRA |= 1 << 22;
 
@@ -98,6 +116,9 @@ void _setup() {
     gps.setup();
 
     calibrate_mag();
+    get_init_orientation();
+
+    while(1);
 
     qkf.Q = 0.055f;
     qkf.R1 = 0.005f;  // variance of the gyro ish
@@ -132,8 +153,9 @@ int main() {
         lockclr(qkf.out_lock_id);
         //printf("t=%d;\tP=%d; K1=%d; K2=%d; K3=%d\n", qkf.exec_time/104, qkf.P, qkf.K1, qkf.K2, qkf.K3);
         //printf("%d %d %d\n", qkf.x.x, qkf.x.y, qkf.x.z);
-        printf("%d %d %d %d\n", q.w.x, q.x.x, q.y.x, q.z.x);
+        //printf("%d %d %d %d\n", q.w.x, q.x.x, q.y.x, q.z.x);
         //printf("fix: %d; nsats: %d\n", gps.gps_quality, gps.n_sats);
+        //printf("reader time: %d\n", reader_t/104);
         waitcnt(CLKFREQ/50 + CNT);
     }
 }

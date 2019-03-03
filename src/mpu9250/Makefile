@@ -20,8 +20,8 @@ LIBS = -lm -lmpu9250 -li2c -lfmath
 LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL)
 
 PORT = /dev/cu.usbserial-*
-LOAD_MODE = load_eeprom
-LOADFLAGS = -Dreset=dtr -S5 -t
+LOAD_MODE = load
+LOADFLAGS = -Dreset=dtr -S5 -t -Dclkfreq=104000000
 
 .PHONY: all setup lib load load_eeprom clean
 

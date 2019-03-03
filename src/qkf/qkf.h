@@ -11,6 +11,8 @@
 
 class QKF {
 
+	bool setup_complete;
+
 	uint32_t a_t;
 	uint32_t w_t;
     uint32_t h_t;
@@ -60,7 +62,12 @@ public:
 
 	QKF();
 
-	void start();
+	/*
+	 * g and h are the initial up and north vectors, normalized.
+	 */
+	void setup(vec3f16 g, vec3f16 h);
+
+	bool start();
 
 };
 
