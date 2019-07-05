@@ -9,11 +9,12 @@
 #include <stdint.h>
 
 #define F16_ONE (1<<16)
+#define PI      (f16_t)((int32_t)205887) // 3.1415926*(2^16)
 
 #define f16_mul(n, m) (int32_t)((((int64_t)n)*m)>>16)
 #define f16_div(n, m) (int32_t)((((int64_t)n)<<16)/(m))
 
-#define f16(n) ((n*F16_ONE))
+#define f16(n) (int32_t)((n*F16_ONE))
 #define f16_f(n) (n/(float)F16_ONE)
 
 // if calling code is C++, this lets the linker work
@@ -37,15 +38,15 @@ struct f16_t {
 public:
 
     inline f16_t() {
-        this->x = 0;
+        x = 0;
     }
 
     inline f16_t(float a) {
-        this->x = f16(a);
+        x = f16(a);
     }
 
     inline f16_t(int32_t a) {
-        this->x = a;
+        x = a;
     }
 
     inline void operator=(f16_t rhs) {
@@ -85,6 +86,10 @@ public:
 
     inline f16_t sqrt() {
         return isqrt(x);
+    }
+
+    inline f16_t floor() {
+        return f16_t(x & ((F16_ONE - 1) << 16));
     }
 
     int32_t x;

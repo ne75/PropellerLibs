@@ -59,5 +59,5 @@ install: lib
 	cp $(INCLFILES) ../../include/proplibs/
 
 clean:
-	rm -rf $(OBJDIR)/
-	rm -rf $(LIBDIR)/
+	rm -rf $(OBJDIR)
+	rm -rf $(LIBDIR)

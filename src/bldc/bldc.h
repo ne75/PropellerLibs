@@ -39,7 +39,7 @@ public:
     void set_velocity(int32_t v);
 
     /*
-     * set the the motor power between 0 (off) and 255 (max)
+     * set the the motor power between 0 (off) and 100 (max)
      */
     void set_power(uint8_t p);
 

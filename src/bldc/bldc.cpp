@@ -1,8 +1,7 @@
 #include <propeller.h>
 
 #include "bldc.h"
-
-extern unsigned int _load_start_bldc_cog[];
+#include "stdio.h"
 
 BLDC::BLDC(uint8_t id, uint8_t pa, uint8_t pb, uint8_t pc, uint8_t poles) {
     stack_bldc[BLDC_STACK_SIZE] = (unsigned)&m;
@@ -12,14 +11,16 @@ BLDC::BLDC(uint8_t id, uint8_t pa, uint8_t pb, uint8_t pc, uint8_t poles) {
     m.pin3 = pc;
     m.id = id;
     m.poles = poles;
+    m.velocity = 0;
 }
 
 void BLDC::init() {
-    cognew(_load_start_bldc_cog, &stack_bldc[BLDC_STACK_SIZE]);
+    extern unsigned int *bldc_code;
+    cognew(bldc_code, &stack_bldc[BLDC_STACK_SIZE]);
 }
 
 void BLDC::enable(bool en) {
-    m.en = true;
+    m.en = en;
 }
 
 void BLDC::step(int32_t a) {

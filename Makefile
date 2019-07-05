@@ -10,6 +10,8 @@ LIBMPU9250 = mpu9250
 LIBSAM_M8Q = sam-m8q
 LIBBLDC = bldc
 LIBQKF = qkf
+LIBQUADRATURE = quadrature
+LIBSERIALUI = serialui
 
 PREFIX = /opt/PropellerLibraries # where to install the libraries
 
@@ -21,9 +23,9 @@ MMODEL ?= cmm # by default build using CMM
 
 export
 
-.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) clean
+.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) $(LIBQUADRATURE) $(LIBSERIALUI) clean
 
-all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF)
+all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) $(LIBQUADRATURE) $(LIBSERIALUI)
 
 setup:
 	mkdir -p $(LIBOUTDIR)
@@ -78,6 +80,14 @@ $(LIBQKF):
 	cd $(SRCDIR)/$@ && make lib
 	cd $(SRCDIR)/$@ && make install
 
+$(LIBQUADRATURE):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
+$(LIBSERIALUI):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
 clean:
 	rm -rf ./$(LIBOUTDIR)
 	rm -rf ./$(INCLDIR)
@@ -92,4 +102,6 @@ clean:
 	cd $(SRCDIR)/$(LIBFMATH) && make clean
 	cd $(SRCDIR)/$(LIBSAM_M8Q) && make clean
 	cd $(SRCDIR)/$(LIBQKF) && make clean
+	cd $(SRCDIR)/$(LIBQUADRATURE) && make clean
+	cd $(SRCDIR)/$(LIBSERIALUI) && make clean
 

@@ -3,9 +3,13 @@ CC = $(PROPGCC)/bin/propeller-elf-gcc
 OBJCOPY = $(PROPGCC)/bin/propeller-elf-objcopy
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
+NM = $(PROPGCC)/bin/propeller-elf-nm
 
 MMODEL ?= cmm
 BOARD = QUICKSTART
+
+CLKFREQ = 100MHz
+CLKMODE = xinput # use external clock source
 
 TARGET = bldc-example
 LIBDIR = $(MMODEL)
@@ -16,13 +20,12 @@ INCLFILES = bldc.h bldc_cog.h
 OBJDIR = build_$(MMODEL)
 
 CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
-
 LIBS = -lbldc
 LFLAGS = -L./$(MMODEL)/
 
 PORT = /dev/cu.usbserial-*
-LOAD_MODE = load_eeprom
-LOADFLAGS = -Dreset=dtr -S5
+LOAD_MODE = load
+LOADFLAGS = -Dreset=dtr -S5 -t -Dclkfreq=$(CLKFREQ) -Dclkmode=$(CLKMODE)
 
 .PHONY: all config load clean
 
@@ -35,8 +38,8 @@ setup:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/bldc_cog.o $(OBJDIR)/bldc.o
-		$(AR) rcs $@ $^
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/bldc.cog $(OBJDIR)/bldc.o
+		$(AR) rs $@ $^
 
 $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
 		$(CC) $(INCLUDES) $(LFLAGS) -o $@ -m$(MMODEL) $(CFLAGS) $^ $(LIBS)
@@ -46,14 +49,13 @@ $(OBJDIR)/$(TARGET).o: demo.cpp
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 $(OBJDIR)/bldc.o: bldc.cpp bldc.h
-		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $<
+		$(CC) -c -r $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $<
 
+# COG targets
 
-# COG functions
-
-$(OBJDIR)/bldc_cog.o: bldc_cog.c bldc_cog.h
+$(OBJDIR)/bldc.cog: bldc_cog.c bldc_cog.h
 		$(CC) -r $(INCLUDES) $(LFLAGS) $(CFLAGS) -mcog -o $@ $<
-		$(OBJCOPY) --localize-text --rename-section .text=bldc.cog $@
+		$(OBJCOPY) --localize-text --rename-section .text=$(notdir $@) $@
 
 # Loading
 
@@ -69,5 +71,5 @@ install: lib
 	cp $(INCLFILES) ../../include/proplibs/
 
 clean:
-	rm -rf $(OBJDIR)/
-	rm -rf $(LIBDIR)/
+	rm -rf $(OBJDIR)
+	rm -rf $(LIBDIR)

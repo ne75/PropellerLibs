@@ -3,6 +3,7 @@
 #include <propeller.h>
 
 #include "bldc_cog.h"
+#include "bldc_lut.h"
 
 int main(struct bldc_mb **ppmailbox){
 
@@ -14,14 +15,12 @@ int main(struct bldc_mb **ppmailbox){
     uint8_t pin3 = par->pin3;
 
 	// State Hi-Lo-PWM-Pins.
-	uint8_t pinHi;
-    uint8_t pinLo;
-    uint8_t pinPWM;
+	uint8_t pin_fall;
+    uint8_t pin_rise;
+    uint8_t pin_off;
 
     // Variable to access all active motor pins.
 	uint32_t allPin = 1 << pin1 | 1 << pin2 | 1 << pin3;
-
-    uint32_t pwm_time;
 
 	// Set the counter settings.
 	PHSA = 0;
@@ -34,60 +33,42 @@ int main(struct bldc_mb **ppmailbox){
 	CTRB = NCO_SINGLE;
 
     // Configure the motor power level (currently out of 100).
- 	uint8_t power = par->power;
- 	uint32_t hiLevel = 0;
+ 	uint8_t power = 0;
+ 	uint32_t a_period = 0;
+ 	uint32_t b_period = 0;
 
 	// Direction out. Output lo to start.
 	DIRA |= allPin;
 	OUTA &= ~(allPin);
 
+	DIRA |= 1<<3;
+
 	uint32_t t = CNT;
+	while(1) {
+		OUTA ^= 1<<3;
+		if (par->en) {
+			CTRA = NCO_SINGLE | pin_fall;
+			CTRB = NCO_SINGLE | pin_rise;
+			PHSA = -(a_period); // "falling" phase
+			PHSB = -(b_period); // "rising" phase
 
-	while(1){
-		if (par->en){
-			// Standard Output.
-			OUTA &= ~(allPin);
-
-			CTRA = NCO_SINGLE | pinPWM;
-			CTRB = NCO_SINGLE | pinHi;
-
-			PHSA = -(pwm_time);
-			PHSB = -(hiLevel);
-
-			power = par->power;
-			hiLevel = (PWM_PERIOD>>7)*power;
-			pwm_time = bldc_calc_pwm(par);		// TODO: Optimize the bldc_calc_pwm.
+			calc_pwm(par, &a_period, &b_period);
 
 			switch (par->zone){
 				case 0:
-					pinHi = pin1;
-					pinLo = pin3;
-					pinPWM = pin2;
+					pin_fall = pin1;
+					pin_rise = pin2;
+					pin_off = pin3;
 					break;
 				case 1:
-					pinHi = pin2;
-					pinLo = pin3;
-					pinPWM = pin1;
+					pin_fall = pin2;
+					pin_rise = pin3;
+					pin_off = pin1;
 					break;
 				case 2:
-					pinHi = pin2;
-					pinLo = pin1;
-					pinPWM = pin3;
-					break;
-				case 3:
-					pinHi = pin3;
-					pinLo = pin1;
-					pinPWM = pin2;
-					break;
-				case 4:
-					pinHi = pin3;
-					pinLo = pin2;
-					pinPWM = pin1;
-					break;
-				case 5:
-					pinHi = pin1;
-					pinLo = pin2;
-					pinPWM = pin3;
+					pin_fall = pin3;
+					pin_rise = pin1;
+					pin_off = pin2;
 					break;
 			}
 		}
@@ -101,7 +82,7 @@ int main(struct bldc_mb **ppmailbox){
 }
 
 // Zone calculation Function
-uint32_t bldc_calc_pwm (bldc_mb *m){
+void calc_pwm (bldc_mb *m, uint32_t* fall, uint32_t* rise){
 	uint8_t power = m->power;
 
 	m->elec_angle += m->velocity;
@@ -110,12 +91,23 @@ uint32_t bldc_calc_pwm (bldc_mb *m){
 
     uint32_t a = (m->elec_angle < 0) ? MAX_ANGLE+m->elec_angle : m->elec_angle;
 
-    uint32_t subd_max = (MAX_ANGLE/6);
+    m->zone = a/(MAX_ANGLE/3);
+    m->zone_phase = (a % (MAX_ANGLE/3));
 
-    m->zone = a/(subd_max);
-    m->zone_phase = (a % (subd_max));
+    *fall = (((((uint32_t)waveform_lut[m->zone_phase/1000])*PWM_PERIOD)>>16)*power)/100;
+    *rise = (((((uint32_t)waveform_lut[(MAX_ANGLE/3 - m->zone_phase)/1000])*PWM_PERIOD)>>16)*power)/100;
 
-    m->zone_phase = (m->zone & 1) ? subd_max - m->zone_phase : m->zone_phase;
+    // m->zone = a/subd_max;
+    // m->zone_phase = (a % subd_max);
 
-   	return ((m->zone_phase*PWM_PERIOD)/(subd_max)*power)>>7; // scale the pwm time by the power
+    // m->zone_phase = (m->zone & 1) ? subd_max - m->zone_phase : m->zone_phase;
+
+    // return (((((uint32_t)waveform_lut[m->zone_phase/1000])*PWM_PERIOD)>>16)*power)/100;
+
+   	// return (((m->zone_phase*PWM_PERIOD)/subd_max)*power)/100; // scale the pwm time by the power
+
 }
+
+/* define address where this code lives. this is needed for library use (some chicken and egg linker thing from https://forums.parallax.com/discussion/158190/cant-get-cogc-files-to-compile/p2) */
+extern unsigned int _load_start_bldc_cog[];
+const unsigned int *bldc_code = _load_start_bldc_cog;
