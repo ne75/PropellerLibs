@@ -27,10 +27,14 @@ void BLDC::step(int32_t a) {
     m.elec_angle += (a*1000) % MAX_ANGLE;
 }
 
+void BLDC::set_angle(int32_t a) {
+    m.elec_angle = a % MAX_ANGLE;
+}
+
 void BLDC::set_velocity(int32_t v) {
     m.velocity = v;
 }
 
-void BLDC::set_power(uint8_t p) {
+void BLDC::set_power(int16_t p) {
     m.power = p;
 }

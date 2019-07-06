@@ -9,8 +9,9 @@
 #define BLDC_STACK_SIZE 300
 #define MAX_ANGLE       3600000
 #define MAX_VEL         6000
+#define P_MAX           1000
 
-#define PWM_FREQ        18000
+#define PWM_FREQ        16000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define SS_DIV          1
 #define NCO_SINGLE      (0x04 << 26)
@@ -25,7 +26,7 @@ typedef struct bldc_mb {
     uint8_t pin3;
     uint8_t poles;
 
-    uint8_t power;
+    int16_t power; // power it out of 1000, negative powers are allowed
     int32_t velocity;
 
     int32_t mech_angle;     // elec_angle/poles
@@ -36,7 +37,7 @@ typedef struct bldc_mb {
     bool en;
     bool soft_start;
 
-    uint32_t cntr;
+    uint32_t test_val;
 
 } bldc_mb;
 

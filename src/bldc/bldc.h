@@ -39,9 +39,14 @@ public:
     void set_velocity(int32_t v);
 
     /*
+     * Sets the electrical angle.
+     */
+    void set_angle(int32_t a);
+
+    /*
      * set the the motor power between 0 (off) and 100 (max)
      */
-    void set_power(uint8_t p);
+    void set_power(int16_t p);
 
 };
 
