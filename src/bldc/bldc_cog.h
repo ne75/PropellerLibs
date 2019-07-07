@@ -11,7 +11,7 @@
 #define MAX_VEL         6000
 #define P_MAX           1000
 
-#define PWM_FREQ        16000
+#define PWM_FREQ        15000
 #define PWM_PERIOD      (CLKFREQ/PWM_FREQ)
 #define SS_DIV          1
 #define NCO_SINGLE      (0x04 << 26)
@@ -26,18 +26,26 @@ typedef struct bldc_mb {
     uint8_t pin3;
     uint8_t poles;
 
-    int16_t power; // power it out of 1000, negative powers are allowed
+    // phase control gains (not used if encoder_count below is null)
+    int32_t pKp;
+    int32_t pKi;
+    int32_t *encoder_count;
+    uint16_t enc_cpr;
+    int32_t phase;
+
+    int16_t power;
+    int16_t power_ff; // added to power after computation as a feedforward.
+    int16_t max_power; // maximum power out of 1000
     int32_t velocity;
 
-    int32_t mech_angle;     // elec_angle/poles
     int32_t elec_angle;     // 0-3600000
     uint8_t zone;
     uint32_t zone_phase;
 
     bool en;
-    bool soft_start;
+    bool en_phase_ctrl;
 
-    uint32_t test_val;
+    uint32_t exec_time;
 
 } bldc_mb;
 

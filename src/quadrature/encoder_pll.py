@@ -148,7 +148,7 @@ def real_encoder():
     # plt.figure()
 
     fname = "encoder_samples_pid2"
-    f = 250.0;
+    f = 500.0;
     dt = 1/f;
 
     with open(fname) as file:
@@ -164,7 +164,7 @@ def real_encoder():
 
     (pll_p_pid, pll_v_pid) = sim_vel_pll(enc_pid, dt)
     #plt.plot(t, enc_pid, label='pos_raw')
-    plt.plot(t, v_raw, label='vel_raw')
+    #plt.plot(t, v_raw, label='vel_raw')
     plt.plot(t, pll_v_pid, label='v pll w/ pid')
     plt.legend(loc='upper right')
 

@@ -13,11 +13,27 @@ int main(struct bldc_mb **ppmailbox){
 	uint8_t pin1 = par->pin1;
     uint8_t pin2 = par->pin2;
     uint8_t pin3 = par->pin3;
+    int32_t *count = par->encoder_count; //encoder count variable for phase control.
+    uint8_t poles = par->poles;
+    uint16_t cpr = par->enc_cpr;
+    int16_t max_power = par->max_power;
+    int32_t pKp = par->pKp;
+    int32_t pKi = par->pKi;
 
 	// State Hi-Lo-PWM-Pins.
 	uint8_t pin_fall;
     uint8_t pin_rise;
     uint8_t pin_off;
+
+    // pre-compute some stuff
+    const int32_t count2phase = poles*(MAX_ANGLE/cpr);
+
+    // phase control variables.
+    const int32_t phase_sp = MAX_ANGLE/4;   // out of BLDCs MAX_ANGLE. Constant at 90 degrees.
+    int32_t phase_fb;
+    int32_t phase_e;
+    int32_t phase_e_i;
+    int32_t power;
 
     // Variable to access all active motor pins.
 	uint32_t allPin = 1 << pin1 | 1 << pin2 | 1 << pin3;
@@ -27,6 +43,8 @@ int main(struct bldc_mb **ppmailbox){
 	PHSB = 0;
 	FRQA = 1;
 	FRQB = 1;
+
+    DIRA |= 1 << 6;
 
 	// Configure counter to NCO mode on both cog count.
 	CTRA = NCO_SINGLE;
@@ -40,8 +58,42 @@ int main(struct bldc_mb **ppmailbox){
 	OUTA &= ~(allPin);
 
 	uint32_t t = CNT;
+    volatile uint32_t time = 0;
+    volatile int32_t c = 0;
 	while(1) {
+        time = CNT;
 		if (par->en) {
+
+            // computer power
+            if (par->en_phase_ctrl) {
+                OUTA ^= 1 << 6;
+                int32_t m_angle = par->elec_angle;
+                int32_t phase_angle = ((*count)*count2phase) % MAX_ANGLE; // compute the current phase angle
+
+                phase_fb = m_angle-phase_angle;
+                if (abs(phase_fb) > (MAX_ANGLE/2)) {
+                    // if the phase error is very large, then assume we wrapped around in set point
+                    phase_fb += MAX_ANGLE;
+                }
+
+                phase_e = phase_sp - phase_fb;
+                phase_e_i += phase_e/(PWM_FREQ>>3); // this loop will run hella fast
+                if (phase_e_i > 1000000) phase_e_i = 1000000;
+                if (phase_e_i < -1000000) phase_e_i = -1000000;
+
+                power = (-(pKp*phase_e + pKi*(phase_e_i<<3))>>20) + par->power_ff;
+
+                if (power < -max_power) power = -max_power;
+                if (power > max_power) power = max_power;
+
+                par->power = power;
+                par->phase = phase_fb;
+
+            } else {
+                par->power = par->max_power;
+            }
+
+
 			CTRA = NCO_SINGLE | pin_fall;
 			CTRB = NCO_SINGLE | pin_rise;
 			PHSA = -(a_period); // "falling" phase
@@ -72,16 +124,16 @@ int main(struct bldc_mb **ppmailbox){
 			OUTA &= ~(allPin);
 		}
 
+        par->exec_time = CNT-time;
 		waitcnt(t += PWM_PERIOD);
 	}
 }
 
 // Zone calculation Function
-void calc_pwm (bldc_mb *m, uint32_t* fall, uint32_t* rise){
+inline void calc_pwm (bldc_mb *m, uint32_t* fall, uint32_t* rise){
 	int16_t power = m->power;
 
 	m->elec_angle += m->velocity;
-	m->mech_angle = m->elec_angle / m->poles;
 	m->elec_angle = m->elec_angle % MAX_ANGLE;
 
     uint32_t a = (m->elec_angle < 0) ? MAX_ANGLE+m->elec_angle : m->elec_angle;
