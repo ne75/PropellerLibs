@@ -2,8 +2,10 @@
 
 #include "quadrature.h"
 
-#define CALC_FREQ       500
+#define CALC_FREQ       1000
 #define CALC_PER        (CLKFREQ/CALC_FREQ)
+
+Quadrature::Quadrature() {}
 
 Quadrature::Quadrature(uint8_t pa, uint16_t cpr) {
     stack[QUADRATURE_STACK_SIZE] = (unsigned)&enc_mb;
@@ -47,7 +49,7 @@ void Quadrature::calc(void *par) {
     while(1) {
         t = CNT;
         // angle = 2*pi*count/(cpr)
-        f16_t c = f16(encoder->get_count()); // get encoder count as an f16 -- note, this means at 65536 counts, the value of t will overflow, so maybe there's a better way to compute t
+        f16_t c = f16(encoder->get_count());
 
         encoder->pll_pos = encoder->pll_pos + encoder->pll_vel*dt;
         f16_t dp = (c - encoder->pll_pos.floor());
@@ -57,6 +59,8 @@ void Quadrature::calc(void *par) {
 
         encoder->t = encoder->pll_pos;
         encoder->w = encoder->pll_vel;
+
+        encoder->loop_time = CNT-t;
 
         waitcnt(t + CALC_PER);
     }

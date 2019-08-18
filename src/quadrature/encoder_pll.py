@@ -74,7 +74,7 @@ def sim_vel_pll(enc_pos, dt):
     pll_p = length*[0.0]
     pll_v = length*[0.0]
 
-    kp = 60
+    kp = 90
     ki = kp*kp/4
 
     for i in range(1, length):
@@ -91,7 +91,7 @@ def real_encoder():
     f = 500.0
     dt = 1/f
 
-    fname = "encoder_samples"
+    fname = "encoder_samples_short"
 
     # get samples
     with open(fname) as file:
@@ -124,49 +124,49 @@ def real_encoder():
 
 
     # now get the file that uses PID control for velocity
-    fname = "encoder_samples_pid"
+    # fname = "encoder_samples"
 
-    with open(fname) as file:
-        enc_pid = file.readlines()
-        enc_pid = [int(x.strip()) for x in enc_pid]
+    # with open(fname) as file:
+    #     enc_pid = file.readlines()
+    #     enc_pid = [int(x.strip()) for x in enc_pid]
 
-    (pll_p_pid, pll_v_pid) = sim_vel_pll(enc_pid, dt)
+    # (pll_p_pid, pll_v_pid) = sim_vel_pll(enc_pid, dt)
 
-    # plt.xlabel('t [s]')
-    # plt.plot(t, pos_ideal, label='pos ideal')
-    # #plt.plot(t, enc, label='pos encoder')
-    # #plt.plot(t, pll_p, label='pos pll')
-    # plt.plot(t, enc_pid, label='pos w/ pid')
-    # plt.plot(t, vel_ideal, label='v ideal')
+    plt.xlabel('t [s]')
+    plt.plot(t, pos_ideal, label='pos ideal')
+    plt.plot(t, enc, label='pos encoder')
+    plt.plot(t, pll_p, label='pos pll')
+    #plt.plot(t, enc_pid, label='pos w/ pid')
+    plt.plot(t, vel_ideal, label='v ideal')
 
-    # plt.plot(t, pll_p_pid, label='pos pll w/ pid')
-    # #plt.plot(t, pll_v, label='v pll')
-    # plt.plot(t, pll_v_pid, label='v pll w/ pid')
+    #plt.plot(t, pll_p_pid, label='pos pll w/ pid')
+    plt.plot(t, pll_v, label='v pll')
+    #plt.plot(t, pll_v_pid, label='v pll w/ pid')
 
-    # plt.legend(loc='upper right')
+    plt.legend(loc='upper right')
 
     # plt.figure()
 
-    fname = "encoder_samples_pid2"
-    f = 500.0;
-    dt = 1/f;
+    # fname = "encoder_samples_short"
+    # f = 500.0;
+    # dt = 1/f;
 
-    with open(fname) as file:
-        enc_pid = file.readlines()
-        enc_pid = [float(x.strip()) for x in enc_pid]
+    # with open(fname) as file:
+    #     enc_pid = file.readlines()
+    #     enc_pid = [float(x.strip()) for x in enc_pid]
 
-    length = len(enc_pid)
+    # length = len(enc_pid)
 
-    t = [x*dt for x in range(length)]
-    v_raw = [0]
-    for i in range(1, length):
-        v_raw.append((enc_pid[i] - enc_pid[i-1])/dt)
+    # t = [x*dt for x in range(length)]
+    # v_raw = [0]
+    # for i in range(1, length):
+    #     v_raw.append((enc_pid[i] - enc_pid[i-1])/dt)
 
-    (pll_p_pid, pll_v_pid) = sim_vel_pll(enc_pid, dt)
-    #plt.plot(t, enc_pid, label='pos_raw')
-    #plt.plot(t, v_raw, label='vel_raw')
-    plt.plot(t, pll_v_pid, label='v pll w/ pid')
-    plt.legend(loc='upper right')
+    # (pll_p_pid, pll_v_pid) = sim_vel_pll(enc_pid, dt)
+    # plt.plot(t, enc_pid, label='pos_raw')
+    # #plt.plot(t, v_raw, label='vel_raw')
+    # plt.plot(t, pll_v_pid, label='v pll')
+    # plt.legend(loc='upper right')
 
     # plt.figure();
 

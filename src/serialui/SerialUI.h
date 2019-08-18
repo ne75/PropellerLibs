@@ -47,7 +47,6 @@
 
 class SerialUI {
 
-    uint8_t msg_buf[MSG_BUFFER_SIZE];
     FILE *ser;
 
     bool setup_valid;
@@ -69,21 +68,23 @@ public:
     };
 
     struct msg_t {
-        // message metadata
-        uint8_t n_vals;     //the number of values in the message buffer to send.
-
+        // message metadata. this order is 1) ideal for memory alignment and 2) puts things in order for how it's sent out.
         uint32_t confirm;   // if confirm_time is non-zero, this function will wait that amount time to see a
                             // message confirmation come back before returning false. units are microseconds.
                             // Otherwise, it will send the message and return true immediately.
                             // when reading, if confirm is non-zero, then a confirmation message will be written
-                            // This will enventually include checking the CRC.
+                            // This will enventually include checking the CRC. Currently not implemented
+        uint8_t n_vals;     //the number of values in the message buffer to send.
 
         // message data. In theory, a memcpy from the recieve buffer to &op should copy all the message contents.
         uint8_t len;
         uint8_t crc;
         uint8_t op;
         uint32_t vals[(MSG_BUFFER_SIZE-MSG_HEADER_SIZE)/4];
+
     };
+
+    uint8_t msg_buf[MSG_BUFFER_SIZE];
 
     /*
      * default constructor

@@ -33,7 +33,7 @@ int main(struct bldc_mb **ppmailbox){
     int32_t phase_fb;
     int32_t phase_e;
     int32_t phase_e_i;
-    int32_t power;
+    int32_t dphase;
 
     // Variable to access all active motor pins.
 	uint32_t allPin = 1 << pin1 | 1 << pin2 | 1 << pin3;
@@ -43,8 +43,6 @@ int main(struct bldc_mb **ppmailbox){
 	PHSB = 0;
 	FRQA = 1;
 	FRQB = 1;
-
-    DIRA |= 1 << 6;
 
 	// Configure counter to NCO mode on both cog count.
 	CTRA = NCO_SINGLE;
@@ -64,9 +62,13 @@ int main(struct bldc_mb **ppmailbox){
         time = CNT;
 		if (par->en) {
 
-            // computer power
+			CTRA = NCO_SINGLE | pin_fall;
+			CTRB = NCO_SINGLE | pin_rise;
+			PHSA = -(a_period); // "falling" phase
+			PHSB = -(b_period); // "rising" phase
+
+            // compute needed electrical angle to maintain 90deg phase.
             if (par->en_phase_ctrl) {
-                OUTA ^= 1 << 6;
                 int32_t m_angle = par->elec_angle;
                 int32_t phase_angle = ((*count)*count2phase) % MAX_ANGLE; // compute the current phase angle
 
@@ -76,28 +78,9 @@ int main(struct bldc_mb **ppmailbox){
                     phase_fb += MAX_ANGLE;
                 }
 
-                phase_e = phase_sp - phase_fb;
-                phase_e_i += phase_e/(PWM_FREQ>>3); // this loop will run hella fast
-                if (phase_e_i > 1000000) phase_e_i = 1000000;
-                if (phase_e_i < -1000000) phase_e_i = -1000000;
-
-                power = (-(pKp*phase_e + pKi*(phase_e_i<<3))>>20) + par->power_ff;
-
-                if (power < -max_power) power = -max_power;
-                if (power > max_power) power = max_power;
-
-                par->power = power;
+                par->elec_angle += pKp*(phase_sp - phase_fb)/10000;
                 par->phase = phase_fb;
-
-            } else {
-                par->power = par->max_power;
             }
-
-
-			CTRA = NCO_SINGLE | pin_fall;
-			CTRB = NCO_SINGLE | pin_rise;
-			PHSA = -(a_period); // "falling" phase
-			PHSB = -(b_period); // "rising" phase
 
 			calc_pwm(par, &a_period, &b_period);
 
@@ -133,7 +116,7 @@ int main(struct bldc_mb **ppmailbox){
 inline void calc_pwm (bldc_mb *m, uint32_t* fall, uint32_t* rise){
 	int16_t power = m->power;
 
-	m->elec_angle += m->velocity;
+	//m->elec_angle += m->velocity;
 	m->elec_angle = m->elec_angle % MAX_ANGLE;
 
     uint32_t a = (m->elec_angle < 0) ? MAX_ANGLE+m->elec_angle : m->elec_angle;

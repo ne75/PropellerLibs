@@ -32,6 +32,13 @@ public:
     f16_t t; // angle, counts
     f16_t w; // angular velocity, counts/s
     f16_t a; // angular acceleration, counts/s^2, currently not computed
+    uint32_t loop_time;
+    f16_t dp;
+
+    /*
+     * empty constructor
+     */
+    Quadrature();
 
     /*
      * pa: first pin of encoder. pins MUST be sequential in the order A, B, X.

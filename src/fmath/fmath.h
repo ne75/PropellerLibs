@@ -65,6 +65,10 @@ public:
         return x-rhs.x;
     }
 
+    inline f16_t operator-() {
+        return f16_t(-x);
+    }
+
     // if multiplying/dividing by an integer, it can should be done directly (a.x*n, a.x/n instead of a*n, a/n)
     // doing the latter will assume n is a fixed point and treat it as being 65536 times smaller and you'll get the wrong result.
     // or, convert n to a float and then to a f16_t, but that will take more time.
@@ -78,6 +82,22 @@ public:
 
     inline void operator*=(f16_t rhs) {
         x = f16_mul(x, rhs.x);
+    }
+
+    inline bool operator>(f16_t rhs) {
+        return x > rhs.x;
+    }
+
+    inline bool operator<(f16_t rhs) {
+        return x < rhs.x;
+    }
+
+    inline bool operator>=(f16_t rhs) {
+        return x >= rhs.x;
+    }
+
+    inline bool operator<=(f16_t rhs) {
+        return x <= rhs.x;
     }
 
     inline operator float() {

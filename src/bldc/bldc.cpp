@@ -36,5 +36,5 @@ void BLDC::set_velocity(int32_t v) {
 }
 
 void BLDC::set_power(int16_t p) {
-    m.max_power = p;
+    m.power = p;
 }

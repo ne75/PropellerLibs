@@ -8,7 +8,6 @@
 
 #define BLDC_STACK_SIZE 300
 #define MAX_ANGLE       3600000
-#define MAX_VEL         6000
 #define P_MAX           1000
 
 #define PWM_FREQ        15000
@@ -31,11 +30,10 @@ typedef struct bldc_mb {
     int32_t pKi;
     int32_t *encoder_count;
     uint16_t enc_cpr;
-    int32_t phase;
+    int32_t phase;          // drive angle - measured rotor angle.
 
     int16_t power;
-    int16_t power_ff; // added to power after computation as a feedforward.
-    int16_t max_power; // maximum power out of 1000
+    int16_t max_power;      // maximum power out of 1000
     int32_t velocity;
 
     int32_t elec_angle;     // 0-3600000
