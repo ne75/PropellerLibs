@@ -1,5 +1,6 @@
 # directory names of every library in src. List in the order they should be built
 LIBI2C = i2c
+LIBSPI = spi
 LIBFMATH = fmath
 LIBHD44770 = hd44780
 LIBM24512 = m24512
@@ -12,6 +13,8 @@ LIBBLDC = bldc
 LIBQKF = qkf
 LIBQUADRATURE = quadrature
 LIBSERIALUI = serialui
+LIBSERIALPLOT = serialplot
+LIBDHT11 = dht11
 
 PREFIX = /opt/PropellerLibraries # where to install the libraries
 
@@ -23,9 +26,9 @@ MMODEL ?= cmm # by default build using CMM
 
 export
 
-.PHONY: all setup install $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) $(LIBQUADRATURE) $(LIBSERIALUI) clean
+.PHONY: all setup install $(LIBI2C) $(LIBSPI) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) $(LIBQUADRATURE) $(LIBSERIALUI) $(LIBSERIALPLOT) $(LIBDHT11) clean
 
-all: setup $(LIBI2C) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) $(LIBQUADRATURE) $(LIBSERIALUI)
+all: setup $(LIBI2C) $(LIBSPI) $(LIBHD44770) $(LIBM24512) $(LIBMPU6050) $(LIBMPU9250) $(LIBSAM_M8Q) $(LIBSSD1306) $(LIBMCP2515) $(LIBBLDC) $(LIBFMATH) $(LIBQKF) $(LIBQUADRATURE) $(LIBSERIALUI) $(LIBSERIALPLOT) $(LIBDHT11)
 
 setup:
 	mkdir -p $(LIBOUTDIR)
@@ -37,6 +40,10 @@ install: all
 	cp -r $(INCLDIR) $(PREFIX)
 
 $(LIBI2C):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
+$(LIBSPI):
 	cd $(SRCDIR)/$@ && make lib
 	cd $(SRCDIR)/$@ && make install
 
@@ -88,10 +95,19 @@ $(LIBSERIALUI):
 	cd $(SRCDIR)/$@ && make lib
 	cd $(SRCDIR)/$@ && make install
 
+$(LIBSERIALPLOT):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
+$(LIBDHT11):
+	cd $(SRCDIR)/$@ && make lib
+	cd $(SRCDIR)/$@ && make install
+
 clean:
 	rm -rf ./$(LIBOUTDIR)
 	rm -rf ./$(INCLDIR)
 	cd $(SRCDIR)/$(LIBI2C) && make clean
+	cd $(SRCDIR)/$(LIBSPI) && make clean
 	cd $(SRCDIR)/$(LIBHD44770) && make clean
 	cd $(SRCDIR)/$(LIBM24512) && make clean
 	cd $(SRCDIR)/$(LIBMPU6050) && make clean
@@ -104,4 +120,6 @@ clean:
 	cd $(SRCDIR)/$(LIBQKF) && make clean
 	cd $(SRCDIR)/$(LIBQUADRATURE) && make clean
 	cd $(SRCDIR)/$(LIBSERIALUI) && make clean
+	cd $(SRCDIR)/$(LIBSERIALPLOT) && make clean
+	cd $(SRCDIR)/$(LIBDHT11) && make clean
 

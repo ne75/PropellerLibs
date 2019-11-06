@@ -9,7 +9,7 @@
 #include <stdint.h>
 
 #define F16_ONE (1<<16)
-#define PI      (f16_t)((int32_t)205887) // 3.1415926*(2^16)
+#define PI      ((int32_t)205887) // 3.1415926*(2^16)
 
 #define f16_mul(n, m) (int32_t)((((int64_t)n)*m)>>16)
 #define f16_div(n, m) (int32_t)((((int64_t)n)<<16)/(m))
@@ -26,6 +26,16 @@ extern "C" {
  * found the algorithm somewhere online.
  */
 int32_t isqrt(int32_t x);
+
+/**
+ * use the build in sine table to compute the sin/cos of the f16.16 number x
+ */
+int32_t isin(int32_t x);
+int32_t icos(int32_t x);
+
+int32_t iasin(int32_t x);
+int32_t iacos(int32_t x);
+
 
 #ifdef __cplusplus
 }
@@ -104,6 +114,10 @@ public:
         return f16_f(x);
     }
 
+    inline operator int() {
+        return x>>16;
+    }
+
     inline f16_t sqrt() {
         return isqrt(x);
     }
@@ -114,6 +128,18 @@ public:
 
     int32_t x;
 };
+
+f16_t fsin(f16_t x) {
+    return f16_t(isin(x.x));
+}
+
+f16_t fcos(f16_t x) {
+    return f16_t(icos(x.x));
+}
+
+f16_t ftan(f16_t x) {
+    return f16_t(isin(x.x))/f16_t(icos(x.x));
+}
 
 struct vec3f16 {
 public:

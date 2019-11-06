@@ -78,7 +78,7 @@ uint8_t SerialUI::calcCRC8(uint8_t *s, uint8_t len) {
 }
 
 void SerialUI::print(msg_t *msg) {
-    printf("message:\n length = %d\n op = %d\n crc = %d\n n_vals = %d\n values = %d, %d, %d, %d, %d, %d, %d, %d\n",
+    printf("# message:\tlength = %d\t op = %d\t crc = %d\t n_vals = %d\t values = %d, %d, %d, %d, %d, %d, %d, %d\n",
                 msg->len,
                 msg->op,
                 msg->crc,

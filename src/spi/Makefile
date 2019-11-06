@@ -2,38 +2,38 @@ PROPGCC = /opt/parallax
 CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
-OBJCOPY = $(PROPGCC)/bin/propeller-elf-objcopy
 
 MMODEL ?= cmm
 
-TARGET = fmath-example
+TARGET = spi-demo
 LIBDIR = $(MMODEL)
-LIBTARGET = libfmath
-INCLFILES = fmath.h
+LIBTARGET = libspi
+LIBNAME = spi
+INCLFILES = spibus.h
 
 OBJDIR = build_$(MMODEL)
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -std=c99
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions
 
-LIBS = -lfmath -lm
-LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL)
+LFLAGS = -L./$(MMODEL)/
+LIBS = -lspi
 
 PORT = /dev/cu.usbserial-*
 LOAD_MODE = load
-LOADFLAGS = -Dreset=dtr -S5 -Dclkfreq=104000000 -t
+LOADFLAGS = -Dreset=dtr -S5 -Dclkfreq=104000000
 
-.PHONY: all setup lib clean load load_eeprom
+.PHONY: all setup lib clean
 
 all: clean setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
 
-lib: setup $(LIBDIR)/$(LIBTARGET).a
+lib: clean setup $(LIBDIR)/$(LIBTARGET).a
 
 setup:
 	$(shell pkill propeller-load)
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/fmath.o
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/spibus.o
 		$(AR) rcs $@ $^
 
 $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
@@ -43,7 +43,7 @@ $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
 $(OBJDIR)/$(TARGET).o: demo.cpp
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
-$(OBJDIR)/fmath.o: fmath.c fmath.h
+$(OBJDIR)/spibus.o: spibus.cpp spibus.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 load: $(OBJDIR)/$(TARGET).elf

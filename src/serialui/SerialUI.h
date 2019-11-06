@@ -121,7 +121,7 @@ public:
     /*
      * prints the message out to stdout, useful for debugging
      */
-    void print(msg_t *msg);
+    static void print(msg_t *msg);
 
 };
 

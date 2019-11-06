@@ -2,27 +2,31 @@ PROPGCC = /opt/parallax
 CC = $(PROPGCC)/bin/propeller-elf-gcc
 LOAD = $(PROPGCC)/bin/propeller-load
 AR = $(PROPGCC)/bin/propeller-elf-ar
-OBJCOPY = $(PROPGCC)/bin/propeller-elf-objcopy
 
 MMODEL ?= cmm
 
-TARGET = fmath-example
+## board specific!
+CLKFREQ = 104000000
+CLKMODE = xtal1+pll16x # crystal
+
+TARGET = dht11-example
 LIBDIR = $(MMODEL)
-LIBTARGET = libfmath
-INCLFILES = fmath.h
+LIBTARGET = libdht11
+LIBNAME = dht11
+INCLFILES = dht11.h
 
 OBJDIR = build_$(MMODEL)
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -std=c99
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 
-LIBS = -lfmath -lm
-LFLAGS = -L./$(MMODEL)/ -L../i2c/$(MMODEL)/ -L../fmath/$(MMODEL)
+LIBS = -l$(LIBNAME) -lm
+LFLAGS = -L./$(MMODEL)/
 
 PORT = /dev/cu.usbserial-*
 LOAD_MODE = load
-LOADFLAGS = -Dreset=dtr -S5 -Dclkfreq=104000000 -t
+LOADFLAGS = -Dreset=dtr -S5 -Dclkfreq=$(CLKFREQ) -Dclkmode=$(CLKMODE) -t
 
-.PHONY: all setup lib clean load load_eeprom
+.PHONY: all setup lib load load_eeprom clean install
 
 all: clean setup $(LIBDIR)/$(LIBTARGET).a $(OBJDIR)/$(TARGET).elf $(LOAD_MODE)
 
@@ -33,8 +37,8 @@ setup:
 	mkdir -p $(OBJDIR)
 	mkdir -p $(LIBDIR)
 
-$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/fmath.o
-		$(AR) rcs $@ $^
+$(LIBDIR)/$(LIBTARGET).a: $(OBJDIR)/dht11.o
+		$(AR) rcs $@ $<
 
 $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
 		$(CC) $(INCLUDES) $(LFLAGS) -o $@ -m$(MMODEL) $(CFLAGS) $^ $(LIBS)
@@ -43,7 +47,7 @@ $(OBJDIR)/$(TARGET).elf: $(OBJDIR)/$(TARGET).o
 $(OBJDIR)/$(TARGET).o: demo.cpp
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
-$(OBJDIR)/fmath.o: fmath.c fmath.h
+$(OBJDIR)/dht11.o: dht11.cpp dht11.h
 		$(CC) -c $(INCLUDES) -o $@ -m$(MMODEL) $(CFLAGS) $(DEADCODESTRIP) $<
 
 load: $(OBJDIR)/$(TARGET).elf
@@ -58,5 +62,5 @@ install: lib
 	cp $(INCLFILES) ../../include/proplibs/
 
 clean:
-	rm -rf ./$(OBJDIR)
-	rm -rf ./$(LIBDIR)
+	rm -rf $(OBJDIR)
+	rm -rf $(LIBDIR)
