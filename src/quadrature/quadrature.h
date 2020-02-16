@@ -34,6 +34,7 @@ public:
     f16_t a; // angular acceleration, counts/s^2, currently not computed
     uint32_t loop_time;
     f16_t dp;
+    f16_t c;
 
     /*
      * empty constructor

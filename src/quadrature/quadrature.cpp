@@ -24,7 +24,7 @@ void Quadrature::init() {
 
 void Quadrature::init_calc(f16_t Kp) {
     this->Kp = Kp;
-    this->Ki = 0.25f*(Kp*Kp);
+    this->Ki = f16_t(0.25f)*(Kp*Kp);
     cogstart(Quadrature::calc, (void*)this, calc_stack, sizeof(calc_stack));
 }
 
@@ -34,6 +34,7 @@ int32_t Quadrature::get_count() {
 
 void Quadrature::zero() {
     enc_mb.count = 0;
+    t = 0;
     pll_pos = 0;
 }
 
@@ -53,9 +54,12 @@ void Quadrature::calc(void *par) {
 
         encoder->pll_pos = encoder->pll_pos + encoder->pll_vel*dt;
         f16_t dp = (c - encoder->pll_pos.floor());
+        encoder->dp = dp;
+        encoder->c = pll_ki*dp*dt;
 
-        encoder->pll_pos = encoder->pll_pos + pll_kp*dp*dt;
-        encoder->pll_vel = encoder->pll_vel + pll_ki*dp*dt;
+        f16_t dpdt = dp*dt;
+        encoder->pll_pos = encoder->pll_pos + pll_kp*dpdt;
+        encoder->pll_vel = encoder->pll_vel + pll_ki*dpdt;
 
         encoder->t = encoder->pll_pos;
         encoder->w = encoder->pll_vel;

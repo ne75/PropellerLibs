@@ -129,17 +129,161 @@ public:
     int32_t x;
 };
 
-f16_t fsin(f16_t x) {
+#define F16_1 f16_t(F16_ONE)
+
+inline f16_t f16_int(int32_t a) {
+    f16_t n;
+    n.x = a*F16_ONE;
+    return n;
+}
+
+inline f16_t fsqrt(f16_t x) {
+    return x.sqrt();
+}
+
+inline f16_t fsin(f16_t x) {
     return f16_t(isin(x.x));
 }
 
-f16_t fcos(f16_t x) {
+inline f16_t fcos(f16_t x) {
     return f16_t(icos(x.x));
 }
 
-f16_t ftan(f16_t x) {
+inline f16_t ftan(f16_t x) {
     return f16_t(isin(x.x))/f16_t(icos(x.x));
 }
+
+inline f16_t fasin(f16_t x) {
+    return f16_t(iasin(x.x));
+}
+
+inline f16_t facos(f16_t x) {
+    return f16_t(iacos(x.x));
+}
+
+inline f16_t fatan(f16_t x) {
+    f16_t t = (F16_1 + (x*x)).sqrt();
+    return f16_t(iasin((x/t).x));
+}
+
+inline f16_t fatan2(f16_t y, f16_t x) {
+    // atan2 is not defined for x=0 and y=0
+    if (x.x == 0 && y.x == 0) return 0;
+
+    f16_t r = (x*x + y*y).sqrt(); // radius of the circle.
+    f16_t t = y/r;
+
+    // abs(t) should never be > 1, but rounding errors can make it larger than 1 by 1 bit. bring it back down to avoid errors with downstream functions
+    if (t.x > F16_ONE) t.x = F16_ONE;
+    if (t.x < -F16_ONE) t.x = -F16_ONE;
+
+    if (x.x > 0) {
+        return f16_t(iasin(t.x)); // atan(y/x) = asin(y/r)
+    } else if (x.x < 0) {
+        if (y.x >= 0) {
+            return f16_t(-iasin(t.x) + PI);
+        } else {
+            return f16_t(-iasin(t.x) - PI);
+        }
+    } else if (x.x == 0) {
+        if (y.x > 0) {
+            return f16_t(PI/2);
+        } else if (y.x < 0) {
+            return f16_t(-PI/2);
+        }
+    }
+}
+
+struct vec2f16 {
+public:
+    vec2f16() {
+        x = 0;
+        y = 0;
+    };
+
+    vec2f16(f16_t nx, f16_t ny) {
+        x = nx;
+        y = ny;
+    }
+
+    inline void operator=(vec2f16 rhs) {
+        x=rhs.x;
+        y=rhs.y;
+    }
+
+    //binary operators
+    inline bool operator==(vec2f16 rhs)  {
+        return(x == rhs.x && y == rhs.y);
+    }
+
+    inline vec2f16 operator+(vec2f16 rhs) {
+        return vec2f16(x + rhs.x,
+                    y + rhs.y);
+    }
+
+    inline vec2f16 operator-(vec2f16 rhs) {
+        return vec2f16(x - rhs.x,
+                    y - rhs.y);
+    }
+
+    inline vec2f16 operator*(f16_t scalar) {
+        return vec2f16(x*scalar, y*scalar);
+    }
+
+    inline vec2f16 operator/(f16_t scalar) {
+       return vec2f16(x/scalar, y/scalar);
+    }
+
+    //unary operators
+    inline vec2f16 operator-() {
+       return vec2f16(-x, -y);
+    }
+
+    // since this is a 2d vector, cross product is a scalar.
+    inline f16_t cross(vec2f16 rhs) {
+        return (x * rhs.y) - (y * rhs.x);
+    }
+
+    inline f16_t dot(vec2f16 rhs) {
+        return (x * rhs.x +
+                y * rhs.y);
+    }
+
+    f16_t length() {
+        // because we are trying to compute x^2 + y^2, overflows are very possible. So, instead use this 64bit version of the algorithm
+        // l2 = (x^2 + y^2) << 16 = f*2^32 (f is float version of this number).
+        uint64_t l2 = ((((int64_t)x.x)*x.x)) + ((((int64_t)y.x)*y.x));
+
+        uint64_t root, remainder, place;
+
+        root = 0;
+        remainder = l2;
+        place = 0x4000000000000000; // starting value for 64 bit
+
+        while (place > remainder)
+            place = place >> 2;
+        while (place) {
+            if (remainder >= root + place) {
+                remainder = remainder - root - place;
+                root = root + (place << 1);
+            }
+            root = root >> 1;
+            place = place >> 2;
+        }
+
+        // root = sqrt(f*2^32) = sqrt(f)*2^16
+        return f16_t((int32_t)root); // this is sqrt(l2) = sqrt(x^2 + y^2);
+    }
+
+    inline vec2f16 normalize() {
+        f16_t l = this->length();
+        return vec2f16(x/l, y/l);
+    }
+
+    f16_t x;
+    f16_t y;
+
+};
 
 struct vec3f16 {
 public:

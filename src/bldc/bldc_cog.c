@@ -78,7 +78,7 @@ int main(struct bldc_mb **ppmailbox){
                     phase_fb += MAX_ANGLE;
                 }
 
-                par->elec_angle += (phase_sp - phase_fb);
+                par->elec_angle += pKp*(phase_sp - phase_fb)/10000;
                 par->phase = phase_fb;
             }
 

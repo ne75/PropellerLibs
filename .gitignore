@@ -65,3 +65,5 @@ include/
 *.sublime-project
 *.sublime-workspace
 *vs/
+*.cog
+*.elf
