@@ -14,8 +14,6 @@ class Quadrature {
     uint32_t calc_stack[64];
 
     f16_t cpr;
-    f16_t pll_pos; // compute this in counts
-    f16_t pll_vel; // compute this in counts/s
     f16_t Kp;
     f16_t Ki; // Ki = 1/4*Kp^2
 
@@ -33,8 +31,6 @@ public:
     f16_t w; // angular velocity, counts/s
     f16_t a; // angular acceleration, counts/s^2, currently not computed
     uint32_t loop_time;
-    f16_t dp;
-    f16_t c;
 
     /*
      * empty constructor

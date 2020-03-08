@@ -10,6 +10,7 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
 
 	// Localize Variables.
 	uint8_t pA = encoder->pin;
+    DIRA &= ~(0x3 << pA);
 
     const uint8_t enc_states[] = {0, 1, 3, 2}; // converts encoder value to a state index
     const int8_t enc_lut[] = {0, -1, 0, 1};

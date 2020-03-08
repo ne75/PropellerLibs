@@ -60,27 +60,28 @@ int main(struct bldc_mb **ppmailbox){
     volatile int32_t c = 0;
 	while(1) {
         time = CNT;
+
+        // compute needed electrical angle to maintain 90deg phase.
+        if (par->en_phase_ctrl) {
+            int32_t m_angle = par->elec_angle;
+            int32_t phase_angle = ((*count)*count2phase) % MAX_ANGLE; // compute the current phase angle
+
+            phase_fb = m_angle-phase_angle;
+            if (abs(phase_fb) > (MAX_ANGLE/2)) {
+                // if the phase error is very large, then assume we wrapped around in set point
+                phase_fb += MAX_ANGLE;
+            }
+
+            par->elec_angle += pKp*(phase_sp - phase_fb)/10000;
+            par->phase = phase_fb;
+        }
+
 		if (par->en) {
 
 			CTRA = NCO_SINGLE | pin_fall;
 			CTRB = NCO_SINGLE | pin_rise;
 			PHSA = -(a_period); // "falling" phase
 			PHSB = -(b_period); // "rising" phase
-
-            // compute needed electrical angle to maintain 90deg phase.
-            if (par->en_phase_ctrl) {
-                int32_t m_angle = par->elec_angle;
-                int32_t phase_angle = ((*count)*count2phase) % MAX_ANGLE; // compute the current phase angle
-
-                phase_fb = m_angle-phase_angle;
-                if (abs(phase_fb) > (MAX_ANGLE/2)) {
-                    // if the phase error is very large, then assume we wrapped around in set point
-                    phase_fb += MAX_ANGLE;
-                }
-
-                par->elec_angle += pKp*(phase_sp - phase_fb)/10000;
-                par->phase = phase_fb;
-            }
 
 			calc_pwm(par, &a_period, &b_period);
 
