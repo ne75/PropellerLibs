@@ -14,19 +14,28 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
 
     const uint8_t enc_states[] = {0, 1, 3, 2}; // converts encoder value to a state index
     const int8_t enc_lut[] = {0, -1, 0, 1};
+    const int32_t kp = encoder->kp/10;
+    const int32_t ki = encoder->ki/10;
 
     encoder->err_cnt = 0;
 
     uint8_t enc_last = 0;
-    uint32_t t_last = 0; // time of the last pulse
+    int32_t count = 0;
+    int32_t pll_p_hr = 0;
+    int32_t pll_v_hr = 0;
+    int32_t pll_p = 0;
+    int32_t pll_v = 0;
 
-    uint32_t t = CNT;
+    volatile uint32_t t = CNT;
     while(1) {
         t = CNT;
+
+        /* sample encoder */
         uint8_t enc = (INA >> pA) & 0x3;
 
         int8_t d = enc_lut[(enc_states[enc] - enc_states[enc_last]) & 3];
-        encoder->count += d;
+        count += d;
+        encoder->count = count;
 
         // if the state changed but didn't increment or decrement the count, must have skipped states so there's have an error.
         if (enc != enc_last && d == 0) {
@@ -34,6 +43,21 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
         }
 
         enc_last = enc;
+
+        /* velocity tracking loop */
+        int32_t p = count*16384;
+
+        pll_p_hr += (pll_v_hr/SAMPLE_FREQ);
+        int32_t dp = p - (pll_p_hr & ~16383);
+
+        pll_p_hr += ((kp*dp)/SAMPLE_FREQ)*10;
+        pll_v_hr += ((ki*dp)/SAMPLE_FREQ)*10;
+
+        pll_p = pll_p_hr/16384;
+        pll_v = pll_v_hr/16384;
+        encoder->vel = pll_v;
+
+        encoder->loop_time = CNT - t;
 
         waitcnt(t + SAMPLE_PERIOD);
     }

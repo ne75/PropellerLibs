@@ -3,15 +3,17 @@
 
 #include "quadrature.h"
 
-Quadrature encoder(21, 2000);
+Quadrature encoder(15, 1000, 200);
 
 int main() {
 
     encoder.init();
-    encoder.init_calc(20.0f);
 
+    volatile int32_t t = CNT;
     while(1) {
-        printf("%d, %f\n", encoder.get_count(), (float)encoder.t);
-        waitcnt(CLKFREQ/100 + CNT);
+        t = CNT;
+        //printf("%d\n", encoder.enc_mb.count);
+        printf("%d\n", *encoder.w);
+        waitcnt(CLKFREQ/100 + t);
     }
 }

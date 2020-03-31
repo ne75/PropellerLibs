@@ -2,6 +2,8 @@ import matplotlib.pyplot as plt
 from math import *
 from statistics import mean, stdev
 
+from scipy import signal
+
 def sim_encoder():
 
     dt = 0.0001 #100 us time step
@@ -74,7 +76,7 @@ def sim_vel_pll(enc_pos, dt):
     pll_p = length*[0.0]
     pll_v = length*[0.0]
 
-    kp = 90
+    kp = 250
     ki = kp*kp/4
 
     for i in range(1, length):
@@ -86,6 +88,35 @@ def sim_vel_pll(enc_pos, dt):
         pll_v[i] = pll_v[i-1] + ki*dp*dt;
 
     return (pll_p, pll_v)
+
+def floor_int(i):
+    return i & ~((1<<17)-1);
+
+def sim_vel_pll_int(enc_pos, f):
+    length = len(enc_pos)
+
+    pll_p = length*[0]
+    pll_v = length*[0]
+    pll_p_hr = 0
+    pll_v_hr = 0
+
+    kp = 250
+    ki = kp*kp/4
+
+    for i in range(1, length):
+        p = enc_pos[i]*(1<<17)
+
+        pll_p_hr += (pll_v_hr/f);
+        dp = p - floor_int(int(pll_p_hr))
+
+        pll_p_hr += int(kp*dp/f)
+        pll_v_hr = pll_v_hr + int(ki*dp/f)
+
+        pll_p[i] = int(pll_p_hr/(1<<17))
+        pll_v[i] = int(pll_v_hr/(1<<17))
+
+    return (pll_p, pll_v)
+
 
 def real_encoder():
     f = 500.0
@@ -184,10 +215,37 @@ def real_encoder():
 
     plt.show()
 
+def get_sample_input(fname):
+    f = 5000
+    dt = 1.0/f
+
+    # get samples
+    with open(fname) as file:
+        enc = file.readlines()
+        enc = [int(x.strip())-int(enc[0].strip()) for x in enc]
+
+    length = len(enc)
+    t = [x*dt for x in range(length)]
+
+    return (t, enc, dt)
+
+
 def main():
+
     plt.style.use('gadfly')
 
-    real_encoder()
+    (t, x, dt) = get_sample_input('encoder_samples_short')
+    (pll_p_int, pll_v_int) = sim_vel_pll_int(x, int(1/dt))
+    (pll_p, pll_v) = sim_vel_pll(x, dt)
+
+    plt.plot(t, x, label='raw position')
+    #plt.plot(t_low, vel_simple, label='simple velocity')
+    plt.plot(t, pll_v, label='pll velocity')
+    plt.plot(t, pll_v_int, label='pll velocity int')
+
+    plt.show()
+
+    #real_encoder()
     #sim_encoder()
 
 if __name__ == "__main__":

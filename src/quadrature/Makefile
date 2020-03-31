@@ -20,9 +20,9 @@ CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
 LIBS = -lquadrature -lm
 LFLAGS = -L./$(MMODEL)/
 
-PORT = /dev/cu.usbserial-A800f8aH
+PORT = /dev/cu.usbserial-*
 LOAD_MODE = load
-LOADFLAGS = -Dreset=dtr -S5 -Dclkfreq=100000000 -Dclkmode=xinput -t
+LOADFLAGS = -Dreset=dtr -S5 -t #-Dclkfreq=100000000 -Dclkmode=xinput
 
 .PHONY: all config load clean
 

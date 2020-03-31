@@ -2,40 +2,39 @@
 
 #include "quadrature.h"
 
-#define CALC_FREQ       1000
-#define CALC_PER        (CLKFREQ/CALC_FREQ)
-
 Quadrature::Quadrature() {}
 
-Quadrature::Quadrature(uint8_t pa, uint16_t cpr) {
+Quadrature::Quadrature(uint8_t pa, uint16_t cpr, int32_t Kp) {
     stack[QUADRATURE_STACK_SIZE] = (unsigned)&enc_mb;
 
     enc_mb.pin = pa;
+    enc_mb.kp = Kp;
+    enc_mb.ki = Kp*Kp/4;
+    this->cpr = cpr;
 
-    this->cpr = f16(cpr);
+    this->t = &(enc_mb.count);
+    this->w = &(enc_mb.vel);
 }
 
 void Quadrature::init() {
     extern uint32_t *quad_cog;
+    zero();
     cognew(quad_cog, &stack[QUADRATURE_STACK_SIZE]);
 }
 
-void Quadrature::init_calc(f16_t Kp) {
-    this->Kp = Kp;
-    this->Ki = f16_t(0.25f)*(Kp*Kp);
-    cogstart(Quadrature::calc, (void*)this, calc_stack, sizeof(calc_stack));
-}
-
-int32_t Quadrature::get_count() {
-    return enc_mb.count;
-}
+// void Quadrature::init_calc(f16_t Kp) {
+//     this->Kp = Kp;
+//     this->Ki = (Kp*Kp)/4;
+//     zero();
+//     cogstart(Quadrature::calc, (void*)this, calc_stack, sizeof(calc_stack));
+// }
 
 void Quadrature::zero() {
-    enc_mb.count = 0;
-    t = 0;
-    w = 0;
+    *t = 0;
+    *w = 0;
 }
 
+/*
 void Quadrature::calc(void *par) {
     Quadrature *encoder = (Quadrature*)par;
 
@@ -68,4 +67,4 @@ void Quadrature::calc(void *par) {
 
         waitcnt(t + CALC_PER);
     }
-}
+}*/
