@@ -19,10 +19,10 @@ public:
      * main struct that holds all parameters. They should be accessed through the setters/getters,
      * but can also be accessed here for convenience
      */
-    quadrature_mb enc_mb;
+    volatile quadrature_mb enc_mb;
 
-    int32_t *t; // angle, counts
-    int32_t *w; // angular velocity, counts/s
+    volatile int32_t *t; // angle, counts
+    volatile int32_t *w; // angular velocity, counts/s
     uint32_t loop_time;
 
     /*

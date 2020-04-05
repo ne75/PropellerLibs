@@ -29,6 +29,7 @@ typedef struct bldc_mb {
     int32_t pKp;
     int32_t pKi;
     int32_t *encoder_count;
+    int32_t encoder_offset;
     uint16_t enc_cpr;
     int32_t phase;          // drive angle - measured rotor angle.
 

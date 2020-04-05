@@ -20,7 +20,6 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
     encoder->err_cnt = 0;
 
     uint8_t enc_last = 0;
-    int32_t count = 0;
     int32_t pll_p_hr = 0;
     int32_t pll_v_hr = 0;
     int32_t pll_p = 0;
@@ -34,8 +33,7 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
         uint8_t enc = (INA >> pA) & 0x3;
 
         int8_t d = enc_lut[(enc_states[enc] - enc_states[enc_last]) & 3];
-        count += d;
-        encoder->count = count;
+        encoder->count += d;
 
         // if the state changed but didn't increment or decrement the count, must have skipped states so there's have an error.
         if (enc != enc_last && d == 0) {
@@ -45,7 +43,7 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
         enc_last = enc;
 
         /* velocity tracking loop */
-        int32_t p = count*16384;
+        int32_t p = encoder->count*16384;
 
         pll_p_hr += (pll_v_hr/SAMPLE_FREQ);
         int32_t dp = p - (pll_p_hr & ~16383);
@@ -55,10 +53,10 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
 
         pll_p = pll_p_hr/16384;
         pll_v = pll_v_hr/16384;
+
         encoder->vel = pll_v;
 
         encoder->loop_time = CNT - t;
-
         waitcnt(t + SAMPLE_PERIOD);
     }
 }

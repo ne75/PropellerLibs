@@ -14,11 +14,9 @@ int main(struct bldc_mb **ppmailbox){
     uint8_t pin2 = par->pin2;
     uint8_t pin3 = par->pin3;
     int32_t *count = par->encoder_count; //encoder count variable for phase control.
+    const int32_t encoder_offset = par->encoder_offset;
     uint8_t poles = par->poles;
     uint16_t cpr = par->enc_cpr;
-    int16_t max_power = par->max_power;
-    int32_t pKp = par->pKp;
-    int32_t pKi = par->pKi;
 
 	// State Hi-Lo-PWM-Pins.
 	uint8_t pin_fall;
@@ -29,11 +27,8 @@ int main(struct bldc_mb **ppmailbox){
     const int32_t count2phase = poles*(MAX_ANGLE/cpr);
 
     // phase control variables.
-    const int32_t phase_sp = MAX_ANGLE/4;   // out of BLDCs MAX_ANGLE. Constant at 90 degrees.
+    // const int32_t phase_sp = MAX_ANGLE/4;   // out of BLDCs MAX_ANGLE. Constant at 90 degrees.
     int32_t phase_fb;
-    int32_t phase_e;
-    int32_t phase_e_i;
-    int32_t dphase;
 
     // Variable to access all active motor pins.
 	uint32_t allPin = 1 << pin1 | 1 << pin2 | 1 << pin3;
@@ -57,56 +52,56 @@ int main(struct bldc_mb **ppmailbox){
 
 	uint32_t t = CNT;
     volatile uint32_t time = 0;
-    volatile int32_t c = 0;
 	while(1) {
         time = CNT;
 
         // compute needed electrical angle to maintain 90deg phase.
-        if (par->en_phase_ctrl) {
-            int32_t m_angle = par->elec_angle;
-            int32_t phase_angle = ((*count)*count2phase) % MAX_ANGLE; // compute the current phase angle
-
-            phase_fb = m_angle-phase_angle;
-            if (abs(phase_fb) > (MAX_ANGLE/2)) {
-                // if the phase error is very large, then assume we wrapped around in set point
-                phase_fb += MAX_ANGLE;
-            }
-
-            par->elec_angle += pKp*(phase_sp - phase_fb)/10000;
-            par->phase = phase_fb;
-        }
 
 		if (par->en) {
-
 			CTRA = NCO_SINGLE | pin_fall;
 			CTRB = NCO_SINGLE | pin_rise;
 			PHSA = -(a_period); // "falling" phase
 			PHSB = -(b_period); // "rising" phase
-
-			calc_pwm(par, &a_period, &b_period);
-
-			switch (par->zone){
-				case 0:
-					pin_fall = pin1;
-					pin_rise = pin2;
-					pin_off = pin3;
-					break;
-				case 1:
-					pin_fall = pin2;
-					pin_rise = pin3;
-					pin_off = pin1;
-					break;
-				case 2:
-					pin_fall = pin3;
-					pin_rise = pin1;
-					pin_off = pin2;
-					break;
-			}
-		}
-
-		else {
+		} else {
 			OUTA &= ~(allPin);
 		}
+
+        if (par->en_phase_ctrl) {
+            int32_t m_angle = par->elec_angle; // current drive angle, 0 to 360
+            int32_t phase_angle = ((*count + encoder_offset)*count2phase) % MAX_ANGLE; // compute the current phase angle, 0 to 360
+            phase_angle = (phase_angle < 0) ? MAX_ANGLE+phase_angle : phase_angle;
+
+            // phase_fb = m_angle-phase_angle;
+            // if (abs(phase_fb) > (MAX_ANGLE/2)) {
+            //     // if the phase error is very large, then assume we wrapped around in set point
+            //     phase_fb += MAX_ANGLE;
+            // }
+
+            //par->elec_angle += (MAX_ANGLE/4 - phase_fb);
+
+            par->elec_angle = (MAX_ANGLE/4 + phase_angle) % MAX_ANGLE;
+            par->phase = phase_angle;
+        }
+
+        calc_pwm(par, &a_period, &b_period);
+
+        switch (par->zone){
+            case 0:
+                pin_fall = pin1;
+                pin_rise = pin2;
+                pin_off = pin3;
+                break;
+            case 1:
+                pin_fall = pin2;
+                pin_rise = pin3;
+                pin_off = pin1;
+                break;
+            case 2:
+                pin_fall = pin3;
+                pin_rise = pin1;
+                pin_off = pin2;
+                break;
+        }
 
         par->exec_time = CNT-time;
 		waitcnt(t += PWM_PERIOD);
@@ -118,9 +113,9 @@ inline void calc_pwm (bldc_mb *m, uint32_t* fall, uint32_t* rise){
 	int16_t power = m->power;
 
 	//m->elec_angle += m->velocity;
-	m->elec_angle = m->elec_angle % MAX_ANGLE;
-
-    uint32_t a = (m->elec_angle < 0) ? MAX_ANGLE+m->elec_angle : m->elec_angle;
+    int32_t a = m->elec_angle % MAX_ANGLE;
+    a = (a < 0) ? MAX_ANGLE+a : a;
+    m->elec_angle = a;
 
     if (power < 0) {
         power *= -1;
