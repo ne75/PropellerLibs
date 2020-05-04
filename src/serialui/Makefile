@@ -13,7 +13,7 @@ INCLFILES = SerialUI.h
 
 OBJDIR = build_$(MMODEL)
 
-CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE
+CFLAGS = -Os -n -m32bit-doubles -mfcache -fno-exceptions -I../ -DLIB_COMPILE -Dprintf=__simple_printf
 
 LIBS = -lserialui
 LFLAGS = -L./$(MMODEL)/

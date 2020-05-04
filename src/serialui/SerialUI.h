@@ -41,13 +41,14 @@
  *
  */
 
-#define MSG_MAX_VALS        8
+#define MSG_MAX_VALS        10
 #define MSG_HEADER_SIZE     4
 #define MSG_BUFFER_SIZE     ((4*MSG_MAX_VALS) + MSG_HEADER_SIZE)
 
 class SerialUI {
 
-    FILE *ser;
+    FILE *ser_r;
+    FILE *ser_w;
 
     bool setup_valid;
 
@@ -80,7 +81,7 @@ public:
         uint8_t len;
         uint8_t crc;
         uint8_t op;
-        uint32_t vals[(MSG_BUFFER_SIZE-MSG_HEADER_SIZE)/4];
+        uint32_t vals[MSG_MAX_VALS];
 
     };
 
@@ -92,11 +93,12 @@ public:
     SerialUI();
 
     /*
-     * ser is the device to be written to. can be UART or another driver (this class is designed for UART,
+     * ser_r is the device to read from and ser_w is the device to write to. Can be the same descripter if opened correctly.
+     * Can be UART or another driver (this class is designed for UART,
      * but could be used with any communication protocal that has a driver written)
      *
      */
-    SerialUI(FILE *ser);
+    SerialUI(FILE *ser_r, FILE *ser_w);
 
     /*
      * read a message from the serial device into msg.

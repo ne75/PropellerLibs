@@ -63,8 +63,7 @@ void QKF::estimator(void *par) {
     quatf16 dq;
 
     while (1) {
-        while(!lockset(qkf->in_lock_id));
-        // need to add 1 because math will make it like 99.99 Hz instead of 100, which rounds down to 99Hz
+        while(lockset(qkf->in_lock_id));
         w = qkf->w;
         a = qkf->a;
         h = qkf->h;
@@ -128,7 +127,7 @@ void QKF::estimator(void *par) {
         dq = quatf16(x);
 
         // 7. multiply dq*q to get the new orientation.
-        while(!lockset(qkf->out_lock_id));
+        while(lockset(qkf->out_lock_id));
         qkf->q = (dq*qkf->q).normalize();
         qkf->K1 = K1;
         qkf->K2 = K2;

@@ -10,7 +10,7 @@ SerialPlot::SerialPlot() {
 }
 
 
-SerialPlot::SerialPlot(FILE *ser_dev) : ser(ser_dev) {
+SerialPlot::SerialPlot(FILE *ser_dev) : ser(ser_dev, ser_dev) {
     ser_dev->_flag &= ~_IOCOOKED;
     setvbuf(ser_dev, NULL, _IONBF, 0);
 

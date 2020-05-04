@@ -16,6 +16,7 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
     const int8_t enc_lut[] = {0, -1, 0, 1};
     const int32_t kp = encoder->kp/10;
     const int32_t ki = encoder->ki/10;
+    const uint8_t lock_id = encoder->lock_id;
 
     encoder->err_cnt = 0;
 
@@ -33,7 +34,11 @@ _NAKED int main(struct quadrature_mb **ppmailbox){
         uint8_t enc = (INA >> pA) & 0x3;
 
         int8_t d = enc_lut[(enc_states[enc] - enc_states[enc_last]) & 3];
+
+        // corner case where the count value is zeroed after count is read for the update, but before it is updated and written back.
+        while(lockset(lock_id));
         encoder->count += d;
+        lockclr(lock_id);
 
         // if the state changed but didn't increment or decrement the count, must have skipped states so there's have an error.
         if (enc != enc_last && d == 0) {

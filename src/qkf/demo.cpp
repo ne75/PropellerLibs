@@ -51,7 +51,7 @@ void data_reader(void *par) {
         t = CNT;
         imu.readData();
 
-        while(!lockset(qkf.in_lock_id));
+        while(lockset(qkf.in_lock_id));
         qkf.a = (imu.a*(f16_t(F16_ONE)-qkf.a_beta)) + (qkf.a*qkf.a_beta);
         qkf.w = imu.w;
         qkf.a_valid = true;
@@ -147,7 +147,7 @@ int main() {
 
     int t = 0;
     while(1) {
-        while(!lockset(qkf.out_lock_id));
+        while(lockset(qkf.out_lock_id));
         quatf16 q;
         memcpy((void*)&q, (void*)&qkf.q, sizeof(quatf16));
         lockclr(qkf.out_lock_id);

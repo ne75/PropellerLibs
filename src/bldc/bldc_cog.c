@@ -10,13 +10,13 @@ int main(struct bldc_mb **ppmailbox){
 	struct bldc_mb *par = *ppmailbox;
 
 	// Localize Variables.
-	uint8_t pin1 = par->pin1;
-    uint8_t pin2 = par->pin2;
-    uint8_t pin3 = par->pin3;
+	const uint8_t pin1 = par->pin1;
+    const uint8_t pin2 = par->pin2;
+    const uint8_t pin3 = par->pin3;
     int32_t *count = par->encoder_count; //encoder count variable for phase control.
     const int32_t encoder_offset = par->encoder_offset;
-    uint8_t poles = par->poles;
-    uint16_t cpr = par->enc_cpr;
+    const uint8_t poles = par->poles;
+    const uint16_t cpr = par->enc_cpr;
 
 	// State Hi-Lo-PWM-Pins.
 	uint8_t pin_fall;

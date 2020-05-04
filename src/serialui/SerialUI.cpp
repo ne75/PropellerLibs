@@ -12,9 +12,11 @@ SerialUI::SerialUI() {
     setup_valid = false;
 }
 
-SerialUI::SerialUI(FILE *ser) {
-    this->ser = ser;
-    if (this->ser == NULL) return;
+SerialUI::SerialUI(FILE *ser_r, FILE *ser_w) {
+    this->ser_r = ser_r;
+    this->ser_w = ser_w;
+    if (this->ser_r == NULL) return;
+    if (this->ser_w == NULL) return;
 
     setup_valid = true; // currently, no way to check for a bad setup (other than ser is null), but future proofing the code for now.
 }
@@ -24,14 +26,15 @@ uint8_t SerialUI::readMessage(msg_t *msg) {
 
     uint8_t c, crc = 0;
 
-    c = fgetc(ser);
+    c = fgetc(ser_r);
 
     if (c != CHAR_START) {
         return SUI_ERR_NO_MSG;
     }
 
-    msg->len = fgetc(ser);
-    fread(&(msg->crc), sizeof(uint8_t), msg->len, ser);
+    msg->len = fgetc(ser_r);
+    fread(&(msg->crc), sizeof(uint8_t), msg->len, ser_r);
+    fflush(ser_r);
 
     crc = calcCRC8(&(msg->op), msg->len-1);
     msg->n_vals = (msg->len-2)/4;
@@ -57,7 +60,8 @@ uint8_t SerialUI::writeMessage(msg_t *msg) {
     msg->crc = calcCRC8(&(msg_buf[3]), msg->len-1); // compute CRC, not counting the CRC byte
     msg_buf[2] = msg->crc; // set the CRC value in the buffer.
 
-    fwrite(msg_buf, sizeof(uint8_t), msg->len + 2, ser);
+    fwrite(msg_buf, sizeof(uint8_t), msg->len + 2, ser_w);
+    fflush(ser_w);
 
     return SUI_OK;
 }

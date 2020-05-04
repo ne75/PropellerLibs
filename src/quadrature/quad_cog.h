@@ -6,7 +6,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define QUADRATURE_STACK_SIZE 64
+#define QUADRATURE_STACK_SIZE 80
 
 #define SAMPLE_FREQ     10000
 #define SAMPLE_PERIOD   (CLKFREQ/SAMPLE_FREQ)
@@ -25,6 +25,8 @@ typedef struct quadrature_mb {
 
     uint32_t err_cnt;
     uint32_t loop_time;
+
+    uint8_t lock_id;
 
 } quadrature_mb;
 

@@ -5,8 +5,6 @@
 
 class Quadrature {
     unsigned stack[QUADRATURE_STACK_SIZE + 1];
-    uint32_t calc_stack[64];
-
     int32_t cpr;
     int32_t Kp;
     int32_t Ki; // Ki = 1/4*Kp^2
@@ -24,6 +22,7 @@ public:
     volatile int32_t *t; // angle, counts
     volatile int32_t *w; // angular velocity, counts/s
     uint32_t loop_time;
+    int8_t cogid;
 
     /*
      * empty constructor
@@ -40,12 +39,6 @@ public:
      * start the Quadrature counter cog
      */
     void init();
-
-
-    //  * start the calculation cog. This will compute angle, angular velocity, and angular acceleration using a tracking loop/PLL
-    //  * Ki is computed from Kp, so no need to specify both. Kp = 2*loop_bandwidth
-
-    // void init_calc(f16_t Kp);
 
     /*
      * clears the count to 0 and resets the PLL position to 0.
